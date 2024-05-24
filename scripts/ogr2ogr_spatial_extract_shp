@@ -1,0 +1,9 @@
+#!/bin/bash
+# extract the spatial bbox denoted as: xmin ymin xmax ymax
+# $0 [bbox] [input_filename] [output_filename]
+: ${1?"Usage: [bbox: xmin,ymin,xmax,ymax] [input_filename] [output_filename] [layer_name]"}
+export bbox=$1
+export ifn=$2
+export ofn=$3
+export lnm=$4
+ogr2ogr -spat "${bbox}" -l -f "ESRI Shapefile" "${ofn}" "${ifn}" "${lnm}"

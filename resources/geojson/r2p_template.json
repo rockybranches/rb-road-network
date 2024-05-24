@@ -1,0 +1,32 @@
+{
+    "type": "FeatureCollection",
+    "features":
+    [
+	{
+	    "type": "Feature",
+	    "geometry": {
+		"type": "Point",
+		"coordinates": []
+	    },
+	    "properties": {
+		"name": "StartPoint",
+		"marker-color": "#ff0000",
+		"marker-size": "large",
+		"marker-symbol": "circle"
+	    }
+	},
+	{
+	    "type": "Feature",
+	    "geometry": {
+		"type": "MultiPoint",
+		"coordinates": []
+	    },
+	    "properties": {
+		"name": "AccessibleArea",
+		"marker-size": "small",
+		"marker-symbol": "circle",
+		"marker-color": "#0000ff"
+	    }
+	}
+    ]
+}

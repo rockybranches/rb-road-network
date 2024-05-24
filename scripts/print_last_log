@@ -1,0 +1,3 @@
+#!/bin/bash
+logsdir=$(realpath ${RB_DATA}/logs/)
+echo "$(realpath ${logsdir}/$(ls -t ${logsdir} | head -1))" | xargs less

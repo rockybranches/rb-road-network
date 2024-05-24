@@ -1,0 +1,9 @@
+{
+    "type": "Feature",
+    "geometry": {
+	"type": "MultiPoint",
+	"coordinates": []
+    },
+    "properties": {
+    }
+}

@@ -1,0 +1,9 @@
+name: rb-road-network
+description: A generated Helm Chart for rb-road-network from Skippbox Kompose
+version: 0.0.1
+apiVersion: v2
+keywords:
+  - rb-road-network
+sources:
+  - https://rcapps:glpat-HfQ4sg9sz8aHMVyvoGoJ@gitlab.com/rcapps/rb-road-network.git
+home: https://rcapps:glpat-HfQ4sg9sz8aHMVyvoGoJ@gitlab.com/rcapps/rb-road-network.git

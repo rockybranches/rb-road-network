@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+echo -e "Hi, welcome to the interactive Rocky Branches Road Network Interface!\n"
+
+read -p "Output path (default: '${RB_SRC}/output/justPopResult.txt'): " -ei "${RB_SRC}/output/justPopResult.txt" outfn
+
+read -p  "Tons per person (default: '4.50'): " -ei "4.50" tons_per_person
+
+default_lat="33.732"
+read -p "Latitude in decimal degrees (default: '$default_lat'): " -ei "$default_lat" lat
+
+default_lon="-84.4166"
+read -p "Longitude in decimal degrees (default: '$default_lon'): " -ei "$default_lon" lon
+
+read -p "Radius in meters (default: '75000'): " -ei "75000" radius
+
+read -p "Stride length (default: '0.009'): " -ei "0.009" stride
+
+read -p "CPU threads (default: '$(nproc)'): " -ei "$(nproc)" nthreads
+
+read -p "zoom ratio (default: '0.5'): " -ei "0.5" zoom
+
+echo -e "\nThanks! Now computing with indicated settings..."
+
+settings="\n\n[Settings]:\n
+output path: ${outfn}\n
+lat = $lat, lon = $lon\n
+radius = ${radius} meters\n
+tons_per_person = $tons_per_person\n
+stride = $stride\n
+zoom = $zoom\n
+nthreads = $nthreads\n\n"
+echo -e $settings
+
+read -p "Continue? [y]/n: " -ei "y" contflag
+
+if [ $contflag == "y" ];
+then
+    echo -e "Launching..." && \
+	eval "$RB_SRC/justPop.exe -f ${outfn} -t $tons_per_person --lat=$lat --lon=$lon --radius=$radius --stride=$stride --nthreads=$nthreads --zoom=$zoom" && \
+	echo -e "...done."
+else
+    echo -e "ok. exiting then... :)"
+fi

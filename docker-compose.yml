@@ -1,0 +1,75 @@
+version: '3.9'
+
+services:
+  
+  rb-roads:
+    env_file: .docker.env
+    container_name: rb-roads
+    networks:
+      - rb-roads-network
+    ports:
+      - 8888:8888
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ${RB_DATA}:/home/appuser/rb_data
+      - ${RB_DATA}/logs:/home/appuser/rb_data/logs
+      - ${RB_SRC}/output:/home/appuser/rb_app/output
+    working_dir: /home/appuser/rb_app
+    user: appuser
+    stdin_open: true
+    tty: true
+    entrypoint: ["/bin/bash", "-c", "echo 'Container is running....' && read -p 'Press any key to open a shell...' && echo 'Key pressed. Opening shell...' && /bin/bash"]
+    command: ["/bin/bash", "-c", "echo 'Container is running....' && read -p 'Press any key to open a shell...' && echo 'Key pressed. Opening shell...' && /bin/bash"]
+  
+  grass-gis:
+    container_name: grass-gis
+    depends_on:
+      - rb-roads
+    networks:
+      - rb-roads-network
+    ports:
+      - 9000:9000
+    image: osgeo/grass-gis:releasebranch_8_3-ubuntu_wxgui
+    env_file: .docker.env
+    environment:
+      - DISPLAY=${DISPLAY}
+    volumes:
+      - /home/robertc/grassdata:/root/grassdata
+      - /tmp/.X11-unix/:/tmp/.X11-unix
+    volumes_from:
+      - rb-roads
+    entrypoint: grass
+
+  rb-roads-api:
+    container_name: rb-roads-api
+    networks:
+      - rb-roads-network
+    image: rb-roads-api:latest
+    env_file: .docker.env
+    environment:
+      - PORT=5000
+    ports:
+      - 5000:5000
+    depends_on:
+      - rb-roads
+    build:
+      context: ./rb_roads_api
+      dockerfile: Dockerfile
+    develop:
+      watch:
+        - action: sync
+          path: rb_roads_api/
+          target: /home/appuser/rb_app/rb_roads_api/
+        - action: rebuild
+          path: rb_roads_api/Dockerfile
+    volumes:
+      # necessary for docker SDK to work
+      - /var/run/docker.sock:/var/run/docker.sock:rw
+    volumes_from:
+      - rb-roads
+
+networks:
+  rb-roads-network:
+    driver: bridge

@@ -1,0 +1,12 @@
+#!/bin/bash
+# create geotiff from shpfile
+: ${1?"Usage: [red] [green] [blue] [width] [height] [layer] [input_filename] [output_filename]"}
+red=$1
+green=$2
+blue=$3
+w=$4
+h=$5
+layer=$6
+shpfn=$7
+tiffn=$8
+gdal_rasterize -burn $red -burn $green -burn $blue -ts $w $h -l ${layer} ${shpfn} ${tiffn}

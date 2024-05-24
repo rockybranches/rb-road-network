@@ -1,0 +1,14 @@
+#!/usr/bin/python
+import fontforge, sys
+
+if __name__ == '__main__':
+        if len(sys.argv) < 2:
+                print("USAGE: ./font2png NAME_OF_FONT_FILE.ttf")
+                sys.exit()
+        os.mkdir("./pngs")
+        F = fontforge.open(sys.argv[1])
+        for name in F:
+                filename = "./pngs/" + name + ".png"
+                print(" exporting ", filename, "...")
+                F[name].export(filename)
+

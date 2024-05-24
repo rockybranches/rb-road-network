@@ -1,0 +1,78 @@
+<!DOCTYPE qgis_style>
+<qgis_style version="2">
+  <symbols>
+    <symbol type="marker" force_rhr="0" clip_to_extent="1" name="Market Area Start Point Styles" alpha="1" tags="rocky branches,rb-road-network,capps geoscience">
+      <layer pass="0" class="SimpleMarker" enabled="1" locked="0">
+        <prop v="0" k="angle"/>
+        <prop v="255,0,0,255" k="color"/>
+        <prop v="1" k="horizontal_anchor_point"/>
+        <prop v="bevel" k="joinstyle"/>
+        <prop v="circle" k="name"/>
+        <prop v="0,0" k="offset"/>
+        <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+        <prop v="MM" k="offset_unit"/>
+        <prop v="35,35,35,255" k="outline_color"/>
+        <prop v="solid" k="outline_style"/>
+        <prop v="0" k="outline_width"/>
+        <prop v="3x:0,0,0,0,0,0" k="outline_width_map_unit_scale"/>
+        <prop v="MM" k="outline_width_unit"/>
+        <prop v="diameter" k="scale_method"/>
+        <prop v="10" k="size"/>
+        <prop v="3x:0,0,0,0,0,0" k="size_map_unit_scale"/>
+        <prop v="Point" k="size_unit"/>
+        <prop v="1" k="vertical_anchor_point"/>
+        <data_defined_properties>
+          <Option type="Map">
+            <Option type="QString" value="" name="name"/>
+            <Option type="Map" name="properties">
+              <Option type="Map" name="enabled">
+                <Option type="bool" value="true" name="active"/>
+                <Option type="QString" value="name = 'StartPoint'" name="expression"/>
+                <Option type="int" value="3" name="type"/>
+              </Option>
+            </Option>
+            <Option type="QString" value="collection" name="type"/>
+          </Option>
+        </data_defined_properties>
+      </layer>
+      <layer pass="0" class="SimpleMarker" enabled="0" locked="0">
+        <prop v="0" k="angle"/>
+        <prop v="34,165,225,255" k="color"/>
+        <prop v="1" k="horizontal_anchor_point"/>
+        <prop v="bevel" k="joinstyle"/>
+        <prop v="circle" k="name"/>
+        <prop v="0,0" k="offset"/>
+        <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+        <prop v="MM" k="offset_unit"/>
+        <prop v="35,35,35,255" k="outline_color"/>
+        <prop v="solid" k="outline_style"/>
+        <prop v="0" k="outline_width"/>
+        <prop v="3x:0,0,0,0,0,0" k="outline_width_map_unit_scale"/>
+        <prop v="MM" k="outline_width_unit"/>
+        <prop v="diameter" k="scale_method"/>
+        <prop v="2" k="size"/>
+        <prop v="3x:0,0,0,0,0,0" k="size_map_unit_scale"/>
+        <prop v="MM" k="size_unit"/>
+        <prop v="1" k="vertical_anchor_point"/>
+        <data_defined_properties>
+          <Option type="Map">
+            <Option type="QString" value="" name="name"/>
+            <Option type="Map" name="properties">
+              <Option type="Map" name="enabled">
+                <Option type="bool" value="true" name="active"/>
+                <Option type="QString" value="name != 'StartPoint'" name="expression"/>
+                <Option type="int" value="3" name="type"/>
+              </Option>
+            </Option>
+            <Option type="QString" value="collection" name="type"/>
+          </Option>
+        </data_defined_properties>
+      </layer>
+    </symbol>
+  </symbols>
+  <colorramps/>
+  <textformats/>
+  <labelsettings/>
+  <legendpatchshapes/>
+  <symbols3d/>
+</qgis_style>
