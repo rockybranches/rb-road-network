@@ -1,3 +1,4 @@
 * text=auto
 *.shp filter=lfs diff=lfs merge=lfs -text
 *.zip filter=lfs diff=lfs merge=lfs -text
+resources/tl_2016_us_county_wgs84/tl_2016_us_county.shp filter=lfs diff=lfs merge=lfs -text

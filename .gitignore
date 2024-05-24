@@ -1,5 +1,3 @@
-*.shp
-*.zip
 __pycache__/
 .env
 poptable*.txt
