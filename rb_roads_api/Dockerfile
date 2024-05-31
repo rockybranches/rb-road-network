@@ -50,6 +50,7 @@ RUN mkdir -p $RB_DATA
 VOLUME $RB_DATA
 
 # Use poetry to install dependencies
+WORKDIR $RB_SRC/rb_roads_api
 RUN poetry install
 
 # setup docker socket permissions

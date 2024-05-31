@@ -1,5 +1,6 @@
 import os
 from dataclasses import dataclass, asdict
+from typing import Literal
 
 
 @dataclass

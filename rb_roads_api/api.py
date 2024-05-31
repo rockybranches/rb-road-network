@@ -10,6 +10,10 @@ from fastapi.middleware.cors import CORSMiddleware
 import docker
 import os
 import logging
+import sys
+pth = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if pth not in sys.path:
+    sys.path.insert(0, pth)
 from rb_roads_api.config.db import pool
 from rb_roads_api.config.utils import ComputeParams, RBEnviron, RBRoadsJob
 import redis
