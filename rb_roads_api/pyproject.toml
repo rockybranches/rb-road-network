@@ -1,4 +1,7 @@
 [tool.poetry]
+packages = [
+    { include = "rb_roads_api", from = "." }
+]
 name = "roads-rb-api"
 version = "0.1.0"
 description = "api interface for rb-road-network"
@@ -15,6 +18,14 @@ jinja2 = "^3.1.2"
 redis = "^5.0.1"
 plotly = "^5.18.0"
 pandas = "^2.1.4"
+click = "^8.1.7"
+textual = "^0.63.6"
+rich = "^13.7.1"
+trogon = "^0.5.0"
+
+[tool.poetry.scripts]
+rb-roads-api = "rb_roads_api.cli:cli"
+run-rb-roads-api = "rb_roads_api.cli:runserver"
 
 [tool.poetry.group.dev.dependencies]
 ipython = "^8.19.0"

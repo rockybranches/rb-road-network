@@ -1,3 +1,12 @@
+from typing import (
+    Dict,
+)
+import uuid
+import json
+import redis
+from rb_roads_api.config.utils import ComputeParams, RBRoadsJob
+from rb_roads_api.config.db import pool
+from typing_extensions import Annotated
 from fastapi import (
     FastAPI,
     Depends,
@@ -7,6 +16,7 @@ from fastapi import (
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 import docker
 import os
 import logging
@@ -14,28 +24,21 @@ import sys
 pth = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if pth not in sys.path:
     sys.path.insert(0, pth)
-from rb_roads_api.config.db import pool
-from rb_roads_api.config.utils import ComputeParams, RBEnviron, RBRoadsJob
-import redis
-import json
-import uuid
-from dataclasses import dataclass, asdict
-from typing import (
-    Any,
-    Dict,
-    List,
-    Literal
-)
+api_path = os.path.dirname(__file__)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 defaultParams = ComputeParams().asdict()
 
 
-def get_redis():
+async def get_redis():
     # Here, we re-use our connection pool
     # not creating a new one
-    return redis.Redis(connection_pool=pool)
+    db = redis.Redis(connection_pool=pool)
+    try:
+        yield db
+    finally:
+        db.close()
 
 
 app = FastAPI(debug=True, title="rb-roads API",
@@ -46,8 +49,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
-static_files = StaticFiles(directory="./www/static")
-templates = Jinja2Templates("./www/templates")
+static_files = StaticFiles(directory=os.path.join(api_path, "www/static"))
+templates = Jinja2Templates(os.path.join(api_path, "www/templates"))
 
 
 async def check_job_status(job: Dict | RBRoadsJob):
@@ -62,8 +65,10 @@ async def check_job_status(job: Dict | RBRoadsJob):
 
 
 @app.get("/jobs")
-async def list_jobs(db: Depends(get_redis)):
-    jobs = await db.get("rb-roads-jobs")
+async def list_jobs(db: redis.Redis = Depends(get_redis)):
+    jobs = db.get("rb-roads-jobs")
+    if jobs is None:
+        return {}
     jobs_out = {}
     for job_id, job in jobs.items():
         job = check_job_status(job)
@@ -75,18 +80,20 @@ async def list_jobs(db: Depends(get_redis)):
 
 @app.get("/")
 async def root(request: Request):
-    return templates.TemplateResponse('index.html', context=dict(request=request, defaultParams=defaultParams))
+    return templates.TemplateResponse(
+        'index.html', context=dict(request=request, defaultParams=defaultParams))
 
 
-async def cache_job_info(container, job: RBRoadsJob, db: Depends(get_redis) = None):
-    jobs = await db.get("rb-roads-jobs")
+async def cache_job_info(container, job: RBRoadsJob, db: redis.Redis = Depends(get_redis)):
+    jobs = db.get("rb-roads-jobs")
+    if jobs is None:
+        jobs = {}
     jobs_dict = json.loads(jobs)
     jobs_dict[str(uuid.uuid4())] = {
         "job": job.asdict(),
         "container.attrs": container.attrs
     }
-    await db.set('rb-roads-jobs', json.dumps(jobs_dict))
-    yield
+    db.set('rb-roads-jobs', json.dumps(jobs_dict))
 
 
 @app.post("/compute")
