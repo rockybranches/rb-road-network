@@ -2,7 +2,8 @@ numpy
 scipy
 pandas
 openpyxl
+pyproj
+geopy
 matplotlib
-
 ipython
 jupyter
