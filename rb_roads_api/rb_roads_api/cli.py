@@ -25,3 +25,8 @@ def runserver(host: str, port: int, bg: bool):
         ).start()
     else:
         uvicorn.run("rb_roads_api.api:app", host=host, port=port)
+
+
+if __name__ == '__main__':
+    cli()
+
