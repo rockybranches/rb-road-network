@@ -1,7 +1,4 @@
-version: '3.9'
-
 services:
-  
   rb-roads:
     env_file: .docker.env
     container_name: rb-roads
@@ -20,9 +17,19 @@ services:
     user: appuser
     stdin_open: true
     tty: true
-    entrypoint: ["/bin/bash", "-c", "echo 'Container is running....' && read -p 'Press any key to open a shell...' && echo 'Key pressed. Opening shell...' && /bin/bash"]
-    command: ["/bin/bash", "-c", "echo 'Container is running....' && read -p 'Press any key to open a shell...' && echo 'Key pressed. Opening shell...' && /bin/bash"]
-  
+    entrypoint:
+      [
+        "/bin/bash",
+        "-c",
+        "echo 'Container is running....' && read -p 'Press any key to open a shell...' && echo 'Key pressed. Opening shell...' && /bin/bash",
+      ]
+    command:
+      [
+        "/bin/bash",
+        "-c",
+        "echo 'Container is running....' && read -p 'Press any key to open a shell...' && echo 'Key pressed. Opening shell...' && /bin/bash",
+      ]
+
   grass-gis:
     container_name: grass-gis
     depends_on:
@@ -41,6 +48,25 @@ services:
     volumes_from:
       - rb-roads
     entrypoint: grass
+
+  qgis:
+    depends_on:
+      - grass-gis
+    container_name: qgis
+    networks:
+      - rb-roads-network
+    build:
+      context: ./qgis_docker
+      dockerfile: Dockerfile
+    command: /home/qgis/cmd.sh
+    env_file: .docker.env
+    environment:
+      - DISPLAY=${DISPLAY}
+      - GRASS_PYTHON=/home/appuser/grass_venv/bin/python
+    volumes:
+      - /tmp/.X11-unix/:/tmp/.X11-unix
+    volumes_from:
+      - rb-roads
 
   rb-roads-api:
     container_name: rb-roads-api

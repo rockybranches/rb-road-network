@@ -24,5 +24,11 @@ clean:
 	# clean object files
 	rm $(RB_SRC)/*.o || echo "nothing to clean\n"
 
-# ./build.sh testRBtypes testRBtypes linux
-# ./build.sh testCounties testCounties linux
+docker-compose-down:
+	docker compose down --remove-orphans
+docker-compose-build:
+	docker compose build
+docker-compose-up-force-rebuild:
+	docker compose up --build --remove-orphans
+docker-compose-up-daemon:
+	docker compose up -d --remove-orphans

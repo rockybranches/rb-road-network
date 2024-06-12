@@ -1,10 +1,11 @@
-    FROM debian:bullseye-slim
+FROM debian:bullseye-slim
 
-    ENV LANG=en_EN.UTF-8
+ENV LANG=en_EN.UTF-8
 
 
-    RUN apt-get update \
-    && apt-get install --no-install-recommends --no-install-suggests --allow-unauthenticated -y \
+RUN apt-get update \
+    && apt-get upgrade -yq \
+    && apt-get install --no-install-recommends --no-install-suggests --allow-unauthenticated -yq \
     gnupg \
     ca-certificates \
     wget \
@@ -18,7 +19,9 @@
     # Please refer to QGIS repositories documentation if you want other version (https://qgis.org/en/site/forusers/alldownloads.html#repositories)
     && echo "deb [signed-by=/etc/apt/keyrings/qgis-archive-keyring.gpg] https://qgis.org/debian bullseye main" | tee /etc/apt/sources.list.d/qgis.list \
     && apt-get update \
-    && apt-get install --no-install-recommends --no-install-suggests --allow-unauthenticated -y \
+    && apt-get install --no-install-recommends --no-install-suggests --allow-unauthenticated -yq \
+    qgis-providers-common \
+    python3-qgis-common \
     qgis-server \
     spawn-fcgi \
     xauth \
@@ -28,23 +31,23 @@
     wget \
     && rm -rf /var/lib/apt/lists/*
 
-    RUN useradd -m qgis
+RUN useradd -m qgis
 
-    ENV TINI_VERSION v0.19.0
+ENV TINI_VERSION v0.19.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
-    RUN chmod +x /tini
+RUN chmod +x /tini
 
-    ENV QGIS_PREFIX_PATH /usr
-    ENV QGIS_SERVER_LOG_STDERR 1
-    ENV QGIS_SERVER_LOG_LEVEL 2
+ENV QGIS_PREFIX_PATH /usr
+ENV QGIS_SERVER_LOG_STDERR 1
+ENV QGIS_SERVER_LOG_LEVEL 2
 
-    COPY cmd.sh /home/qgis/cmd.sh
-    RUN chmod -R 777 /home/qgis/cmd.sh
-    RUN chown qgis:qgis /home/qgis/cmd.sh
+COPY cmd.sh /home/qgis/cmd.sh
+RUN chmod -R 777 /home/qgis/cmd.sh
+RUN chown qgis:qgis /home/qgis/cmd.sh
 
-    USER qgis
-    WORKDIR /home/qgis
+USER qgis
+WORKDIR /home/qgis
 
-    ENTRYPOINT ["/tini", "--"]
+ENTRYPOINT ["/tini", "--"]
 
 CMD ["/home/qgis/cmd.sh"]
