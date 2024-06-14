@@ -1,4 +1,4 @@
-FROM debian:bullseye-slim
+FROM debian:bullseye
 
 ENV LANG=en_EN.UTF-8
 
@@ -18,7 +18,7 @@ RUN apt-get update \
     # Add repository for latest version of qgis-server
     # Please refer to QGIS repositories documentation if you want other version (https://qgis.org/en/site/forusers/alldownloads.html#repositories)
     && echo "deb [signed-by=/etc/apt/keyrings/qgis-archive-keyring.gpg] https://qgis.org/debian bullseye main" | tee /etc/apt/sources.list.d/qgis.list \
-    && apt-get update \
+    && apt-get update  && apt-get upgrade -yq && \
     && apt-get install --no-install-recommends --no-install-suggests --allow-unauthenticated -yq \
     qgis-providers-common \
     python3-qgis-common \
