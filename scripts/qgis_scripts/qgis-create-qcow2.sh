@@ -1,0 +1,1 @@
+docker image save qgis/qgis:latest > qgis_latest.tar

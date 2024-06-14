@@ -50,19 +50,13 @@ services:
     entrypoint: grass
 
   qgis:
-    depends_on:
-      - grass-gis
     container_name: qgis
+    image: qgis/qgis:latest
     networks:
       - rb-roads-network
-    build:
-      context: ./qgis_docker
-      dockerfile: Dockerfile
-    command: /home/qgis/cmd.sh
     env_file: .docker.env
     environment:
       - DISPLAY=${DISPLAY}
-      - GRASS_PYTHON=/home/appuser/grass_venv/bin/python
     volumes:
       - /tmp/.X11-unix/:/tmp/.X11-unix
     volumes_from:
