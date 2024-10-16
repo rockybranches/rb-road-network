@@ -1,0 +1,16 @@
+\begin{tabular}{r|*{6}{l}}
+County & State & 2010 & 2015 & 2020 & 2025 & 2030 \\ 
+\hline
+\\ 
+\hline\hline
+    Totals = &  & 0 & 0 & 0 & 0 & 0\newline
+\end{tabular} \\ 
+\begin{tabular}{l|l}
+\hline\hline
+\newline
+ Population increase (2015 to 2030) & 0 \\ 
+ Percent population increase & -nan \\ 
+ Tons needed by market (2015) & 0.000  (4.500 tons/person) \\ 
+ Tons needed by market (2030) & 0.000  (4.500 tons/person) \\ 
+ Increase in tons needed (2015 to 2030) & 0.000 \\ 
+\end{tabular}

@@ -22,7 +22,6 @@ gridtest.png
 AreaOfAvailabilityImage*.png
 .cache/
 .cache/*
-output/*
 dist/
 *.*~
 *.pyc

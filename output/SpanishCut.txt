@@ -1,0 +1,30 @@
+\begin{tabular}{r|*{6}{l}}
+County & State & 2010 & 2015 & 2020 & 2025 & 2030 \\ 
+\hline
+Aiken & SC & 160531 & 165657 & 171320 & 175635 & 178735\\ 
+Allendale & SC & 10354 & 9420 & 8515 & 7630 & 6870\\ 
+Barnwell & SC & 22637 & 21782 & 20655 & 19515 & 18395\\ 
+Burke & GA & 23336 & 22632 & 22648 & 23233 & 23682\\ 
+Columbia & GA & 124955 & 143837 & 160377 & 170943 & 180499\\ 
+Edgefield & SC & 26973 & 26767 & 27150 & 27370 & 27475\\ 
+Jefferson & GA & 16869 & 15917 & 15267 & 15274 & 15187\\ 
+Jenkins & GA & 8320 & 8899 & 8746 & 8761 & 8675\\ 
+Lexington & SC & 263334 & 281779 & 303605 & 324860 & 345560\\ 
+Lincoln & GA & 7970 & 7722 & 8031 & 7962 & 7793\\ 
+McCormick & SC & 10213 & 9661 & 9180 & 8565 & 7905\\ 
+McDuffie & GA & 21803 & 21462 & 21162 & 21504 & 21804\\ 
+Richmond & GA & 201115 & 201451 & 202079 & 206594 & 211913\\ 
+Screven & GA & 14501 & 14059 & 14012 & 14136 & 14118\\ 
+\\ 
+\hline\hline
+    Totals = &  & 912911 & 951045 & 992747 & 1031982 & 1068611\newline
+\end{tabular} \\ 
+\begin{tabular}{l|l}
+\hline\hline
+\newline
+ Population increase (2015 to 2030) & 117566 \\ 
+ Percent population increase & 12.4 \\ 
+ Tons needed by market (2015) & 4279702.500  (4.500 tons/person) \\ 
+ Tons needed by market (2030) & 4808749.500  (4.500 tons/person) \\ 
+ Increase in tons needed (2015 to 2030) & 529047.000 \\ 
+\end{tabular}

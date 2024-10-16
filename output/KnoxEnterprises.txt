@@ -1,0 +1,36 @@
+\begin{tabular}{r|*{6}{l}}
+County & State & 2010 & 2015 & 2020 & 2025 & 2030 \\ 
+\hline
+Abbeville & SC & 25310 & 24775 & 24300 & 23710 & 23025\\ 
+Burke & GA & 23336 & 22632 & 22648 & 23233 & 23682\\ 
+Columbia & GA & 124955 & 143837 & 160377 & 170943 & 180499\\ 
+Edgefield & SC & 26973 & 26767 & 27150 & 27370 & 27475\\ 
+Elbert & GA & 20100 & 19302 & 19335 & 19513 & 19641\\ 
+Glascock & GA & 3079 & 3020 & 2984 & 3090 & 3144\\ 
+Greene & GA & 15976 & 16617 & 18837 & 19544 & 20021\\ 
+Greenwood & SC & 69788 & 70010 & 70960 & 71385 & 71575\\ 
+Hancock & GA & 9433 & 8578 & 8494 & 8357 & 8188\\ 
+Jefferson & GA & 16869 & 15917 & 15267 & 15274 & 15187\\ 
+Lincoln & GA & 7970 & 7722 & 8031 & 7962 & 7793\\ 
+McCormick & SC & 10213 & 9661 & 9180 & 8565 & 7905\\ 
+McDuffie & GA & 21803 & 21462 & 21162 & 21504 & 21804\\ 
+Oglethorpe & GA & 14899 & 14732 & 15383 & 16484 & 17428\\ 
+Putnam & GA & 21191 & 21307 & 22520 & 22625 & 22573\\ 
+Richmond & GA & 201115 & 201451 & 202079 & 206594 & 211913\\ 
+Taliaferro & GA & 1703 & 1642 & 1562 & 1486 & 1451\\ 
+Warren & GA & 5782 & 5374 & 5232 & 5020 & 4864\\ 
+Washington & GA & 21093 & 20736 & 20150 & 20145 & 19986\\ 
+Wilkes & GA & 10388 & 9911 & 9694 & 9648 & 9482\\ 
+\\ 
+\hline\hline
+    Totals = &  & 651976 & 665453 & 685345 & 702452 & 717636\newline
+\end{tabular} \\ 
+\begin{tabular}{l|l}
+\hline\hline
+\newline
+ Population increase (2015 to 2030) & 52183 \\ 
+ Percent population increase & 7.8 \\ 
+ Tons needed by market (2015) & 2994538.500  (4.500 tons/person) \\ 
+ Tons needed by market (2030) & 3229362.000  (4.500 tons/person) \\ 
+ Increase in tons needed (2015 to 2030) & 234823.500 \\ 
+\end{tabular}
