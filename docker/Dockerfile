@@ -2,8 +2,9 @@
 FROM buildpack-deps:buster as rb-roads
 
 # dependencies
-RUN apt-get update && apt-get upgrade -yq \
-    && apt-get install -yq \
+RUN apt-get update && \
+    apt-get upgrade -yq && \
+    apt-get install -yq --no-install-recommends \
     python3 \
     python3-pip \
     python3-venv \

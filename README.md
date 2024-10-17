@@ -62,28 +62,23 @@ GIS toolkit for creating market area reports, including:
 
 #### Environment variables
 
-```bash
+Use `direnv` to manage environment variables (`./.envrc` defines the following):
 
+```bash
 # absolute path of source/repo directory 
 #  (also contains executables)
-
 export RB_SRC=$HOME/Git/rb-road-network
 export RB_PATH=$RB_SRC
 
-
 # path for resources
-
 export XDG_DATA_DIRS=$RB_PATH/share/
-
 
 # absolute path of data, 
 # e.g. .SHP road map files
-
 export RB_DATA=$HOME/Documents/rb_data
-
 ```
 
-- - -
+#### Build
 
 ### Linux
 
