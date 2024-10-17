@@ -5,18 +5,12 @@ FROM buildpack-deps:buster as rb-roads
 RUN apt-get update && \
     apt-get upgrade -yq && \
     apt-get install -yq --no-install-recommends \
-    python3 \
-    python3-pip \
-    python3-venv \
-    python3-dev \
+    build-essential \
+    cmake \
     gfortran \
     libatlas-base-dev \
     liblapack-dev \
     libblas-dev \
-    python3-scipy \
-    python3-numpy \
-    python3-pandas \
-    python3-matplotlib \
     wget \
     make \
     libtool \
@@ -24,7 +18,6 @@ RUN apt-get update && \
     ca-certificates \
     ca-certificates-mono \
     jq \
-    s3fs \
     sudo
 
 # Download, install correct version of shapelib (v1.5.0)
