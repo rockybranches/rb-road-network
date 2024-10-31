@@ -1,0 +1,26 @@
+\begin{tabular}{r|*{6}{l}}
+County & State & 2010 & 2015 & 2020 & 2025 & 2030 \\ 
+\hline
+Beaufort & SC & 162846 & 179825 & 195910 & 213985 & 231950\\ 
+Bryan & GA & 30377 & 34792 & 40755 & 44968 & 48950\\ 
+Bulloch & GA & 70559 & 73116 & 80839 & 84339 & 90026\\ 
+Chatham & GA & 265799 & 285959 & 289463 & 305200 & 318999\\ 
+Effingham & GA & 52464 & 57076 & 65765 & 71397 & 77515\\ 
+Evans & GA & 11021 & 10690 & 10638 & 10596 & 10590\\ 
+Jasper & SC & 24931 & 27428 & 30185 & 33390 & 37060\\ 
+Liberty & GA & 62765 & 61611 & 63004 & 63781 & 64758\\ 
+Long & GA & 14574 & 17658 & 20171 & 21473 & 22526\\ 
+McIntosh & GA & 14311 & 14031 & 14387 & 14180 & 14086\\ 
+\\ 
+\hline\hline
+    Totals = &  & 709647 & 762186 & 811117 & 863309 & 916460\newline
+\end{tabular} \\ 
+\begin{tabular}{l|l}
+\hline\hline
+\newline
+ Population increase (2015 to 2030) & 154274 \\ 
+ Percent population increase & 20.2 \\ 
+ Tons needed by market (2015) & 2309423.500  (3.030 tons/person) \\ 
+ Tons needed by market (2030) & 2776873.750  (3.030 tons/person) \\ 
+ Increase in tons needed (2015 to 2030) & 467450.219 \\ 
+\end{tabular}

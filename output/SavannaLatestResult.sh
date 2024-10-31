@@ -3,4 +3,4 @@
 
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 
-/home/robbiec/Git/rb-road-network/justPop.exe -f /home/robbiec/Git/rb-road-network/output/SavannaLatestResult2.txt -t 3.03 --lat=32.066051 --lon=-81.095341 --radius=75000 --stride=0.007 --nthreads=16 --zoom=0.5
+/home/robbiec/Git/rb-road-network/justPop.exe -f /home/robbiec/Git/rb-road-network/output/SavannaLatestResult5.txt -t 3.03 --lat=32.066051 --lon=-81.095341 --radius=75000 --stride=0.006 --nthreads=16 --zoom=0.525

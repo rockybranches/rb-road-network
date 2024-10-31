@@ -12,7 +12,7 @@ echo "SRC=$src"
 echo "INCLUDE_PATH=$includes"
 LIBS=" -lshp -pthread -lstdc++fs "
 CFLAGS=""
-RB_DEBUG=${RB_DEBUG:-false} # Set debug flag
+RB_DEBUG=${RB_DEBUG:-true} # Set debug flag
 echo "RB_DEBUG=${RB_DEBUG}"
 function determine_compiler {
     export -p CXX=g++
