@@ -1,5 +1,10 @@
-#!/usr/local/bin/python3
-import requests, os, zipfile, argparse, sys, shutil, subprocess, shlex, time
+#!python3
+import requests
+import os
+import zipfile
+import argparse
+import shutil
+import time
 from functools import wraps
 from collections import OrderedDict
 import geopandas as gpd
@@ -13,15 +18,18 @@ backup_path = os.path.join(rb_data_path, ".backup_gis_osm_roads")
 final_path = os.path.join(rb_data_path, "gis_osm_roads/")
 dl_root = "http://download.geofabrik.de/north-america/us/"
 
+
 class State(object):
     def __init__(self, name, abbrev, fips, which='roads'):
-        self.name = name; self.abbrev = abbrev; self.fips = fips
+        self.name = name
+        self.abbrev = abbrev
+        self.fips = fips
         self.which = which
 
     @property
     def sname(self):
-        return self.name.lower().replace(" ","-")
-    
+        return self.name.lower().replace(" ", "-")
+
     @property
     def url(self):
         sname = self.sname
@@ -40,22 +48,28 @@ class State(object):
     def spath(self):
         which = self.which
         return os.path.join(self.gpath, f"gis_osm_{which}_free_1.shp")
-    
+
     @property
     def dpath(self):
         which = self.which
         return os.path.join(self.gpath, f"gis_osm_{which}_free_1.dbf")
 
+
 class WeirdState(object):
     def __init__(self, name, names, abbrev, fips, which='roads'):
-        self.name = name; self.abbrev = abbrev; self.fips = fips
-        self.names = names; self.which = which
-        self.sub_states = [State(name, abbrev, fips, which=which) for name in names]
+        self.name = name
+        self.abbrev = abbrev
+        self.fips = fips
+        self.names = names
+        self.which = which
+        self.sub_states = [State(name, abbrev, fips, which=which)
+                           for name in names]
 
     @property
     def url(self):
         snames = self.sname
-        dl_urls = [dl_root + self.name.lower() + "/" + f"{sn}-200401-free.shp.zip" for sn in snames]
+        dl_urls = [dl_root + self.name.lower() + "/" +
+                   f"{sn}-200401-free.shp.zip" for sn in snames]
         return dl_urls
 
     def __getattr__(self, aname):
@@ -65,7 +79,7 @@ class WeirdState(object):
 
 
 class US(object):
-                 
+
     weird_states = {'California': ['NorCal', 'SoCal']}
 
     def check_weird(f):
@@ -78,14 +92,14 @@ class US(object):
                 return
             f(*args, **kwds)
         return wrapper
-                 
+
     def __init__(self, path=states_csv, which='roads'):
         self.which = which
         self.path = path
         self.states = OrderedDict()
         self._load_states()
         self.gdfs = []
-        
+
     def _load_states(self):
         state_info = []
         with open(self.path, 'r') as pf:
@@ -94,9 +108,11 @@ class US(object):
             sname, sabbrev, sfips = si.split(",")
             if sname in list(US.weird_states.keys()):
                 print("(weird state): ", sname)
-                self.states.update({sname: WeirdState(sname, US.weird_states[sname], sabbrev, sfips, which=self.which)})
+                self.states.update({sname: WeirdState(
+                    sname, US.weird_states[sname], sabbrev, sfips, which=self.which)})
             else:
-                self.states.update({sname: State(sname, sabbrev, sfips, which=self.which)})
+                self.states.update(
+                    {sname: State(sname, sabbrev, sfips, which=self.which)})
 
     def get_list(self, kind='obj', style=None):
         styles = {
@@ -117,6 +133,9 @@ class US(object):
 
     @check_weird
     def download(self, sturl, zp, overwrite=False):
+        if not os.path.exists(os.path.expanduser(zips_path)):
+            print(f"Creating directory: {zips_path}")
+            os.makedirs(os.path.expanduser(zips_path))
         if not overwrite:
             if os.path.exists(zp):
                 print('download: (skipped!)... already have: {}'.format(zp))
@@ -125,7 +144,7 @@ class US(object):
         with open(zp, "wb") as zff:
             for chunk in r.iter_content(chunk_size=128):
                 zff.write(chunk)
-        print('download: ...downloaded: {} , to: {}'.format(sturl,zp))
+        print('download: ...downloaded: {} , to: {}'.format(sturl, zp))
 
     def unzip_all(self, overwrite=False):
         for st in self.states.values():
@@ -148,13 +167,15 @@ class US(object):
         print(f"shpcat_all: concatenating all *{which}* shp files...")
         if backup:
             print("shpcat_all: first, backing up previous roads file...")
-            shutil.copytree(f"{final_path}", backup_path + "_{:d}/".format(int(time.time())))
+            shutil.copytree(f"{final_path}", backup_path +
+                            "_{:d}/".format(int(time.time())))
             print("...done with backup...")
         for ii, st in enumerate(self.states.values()):
             self.shpcat(st.spath, st.dpath)
             if (ii % 5) == 0 and ii > 0:
-                gdf = gpd.GeoDataFrame(pd.concat(self.gdfs,sort=True))
-                ppaths.append(f"{final_path}/gis_osm_{which}_free_part_{ii}.shp")
+                gdf = gpd.GeoDataFrame(pd.concat(self.gdfs, sort=True))
+                ppaths.append(
+                    f"{final_path}/gis_osm_{which}_free_part_{ii}.shp")
                 print("chunkfile...", ppaths[-1])
                 gdf.to_file(ppaths[-1])
                 del self.gdfs[:]
@@ -162,27 +183,35 @@ class US(object):
         gpd.GeoDataFrame(pd.concat([gpd.read_file(pff) for pff in ppaths],
                                    sort=True)).tofile(f"{final_path}/gis_osm_{which}_free_1.shp")
         return
-    
+
     @check_weird
     def shpcat(self, sp, dp):
         which = self.which
         print("loading...", sp)
         self.gdfs.append(gpd.read_file(sp))
-        
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     us = US()
     parser = argparse.ArgumentParser(
         prog="DownloadOSMshps",
         description="Download, process geofabrik OSM data (shps).")
-    parser.add_argument("-dA", "--download-all", help="attempt to download any shp files for all US states.", action="store_true", default=False)
-    parser.add_argument("-f", "--force", help="force download files, overwriting any existing data (default is to skip existing files)", action="store_true", default=False)
-    parser.add_argument("-uA", "--unzip-all", help="unzip all downloaded ZIP files", action='store_true', default=False)
-    parser.add_argument("-d", "--download", help="download shp file(s) corresponding to the state name (e.g. 'California'), specified by the argument(s) following this option.", action="append")
-    parser.add_argument("-u", "--unzip", help="unzip the shp file(s) specified by the argument(s) following this option.", action="append")
-    parser.add_argument("-c", "--shpcat", help="concatenate all current SHP road files, optionally backup existing concatenated SHP file (default).", action='store_true', default=False)
-    parser.add_argument("-w", "--which-features", help="specify which features to use for '--shpcat' (e.g. 'roads', 'transport', 'railways', etc.)", action='append', default=['roads'])
-    parser.add_argument("-nb", "--no-backup", help="If specified, *skip* the backup of the previously concatenated SHP file before shpcat (default is to perform the backup).", action='store_false')
+    parser.add_argument("-dA", "--download-all",
+                        help="attempt to download any shp files for all US states.", action="store_true", default=False)
+    parser.add_argument("-f", "--force", help="force download files, overwriting any existing data (default is to skip existing files)",
+                        action="store_true", default=False)
+    parser.add_argument("-uA", "--unzip-all", help="unzip all downloaded ZIP files",
+                        action='store_true', default=False)
+    parser.add_argument(
+        "-d", "--download", help="download shp file(s) corresponding to the state name (e.g. 'California'), specified by the argument(s) following this option.", action="append")
+    parser.add_argument(
+        "-u", "--unzip", help="unzip the shp file(s) specified by the argument(s) following this option.", action="append")
+    parser.add_argument("-c", "--shpcat", help="concatenate all current SHP road files, optionally backup existing concatenated SHP file (default).",
+                        action='store_true', default=False)
+    parser.add_argument("-w", "--which-features",
+                        help="specify which features to use for '--shpcat' (e.g. 'roads', 'transport', 'railways', etc.)", action='append', default=['roads'])
+    parser.add_argument(
+        "-nb", "--no-backup", help="If specified, *skip* the backup of the previously concatenated SHP file before shpcat (default is to perform the backup).", action='store_false')
     args = parser.parse_args()
     if args.download_all:
         us.download_all(overwrite=args.force)

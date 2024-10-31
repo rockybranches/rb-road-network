@@ -1,4 +1,0 @@
-#!/bin/bash
-# filter only roads
-# args: [input filename] [output filename]
-osmium tags-filter $1 w/highway -o $2

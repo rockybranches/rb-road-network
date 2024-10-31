@@ -1,3 +1,4 @@
-#!/bin/bash
-logsdir=$(realpath ${RB_DATA}/logs/)
+#!/usr/bin/env bash
+logsdir="$RB_DATA/logs"
+echo "Logs directory: ${logsdir}"
 echo "$(realpath ${logsdir}/$(ls -t ${logsdir} | head -1))" | xargs less

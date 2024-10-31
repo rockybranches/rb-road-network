@@ -1,33 +1,33 @@
 services:
-    rb-roads:
-        env_file: ./docker/docker.envrc
-        container_name: rb-roads
-        networks:
-            - rb-roads-network
-        ports:
-            - 8888:8888
-        build:
-            context: .
-            dockerfile: ./docker/Dockerfile
-        volumes:
-            - ${RB_DATA:-${HOME}/Documents/rb_data}:/home/appuser/Documents/rb_data
-        working_dir: /home/appuser/rb_app
-        user: appuser
-        stdin_open: true
-        tty: true
-        entrypoint:
-            [
-                "/bin/bash",
-                "-c",
-                "echo 'Container is running....' && read -p 'Press any key to open a shell...' && echo 'Key pressed. Opening shell...' && /bin/bash",
-            ]
-        command:
-            [
-                "/bin/bash",
-                "-c",
-                "echo 'Container is running....' && read -p 'Press any key to open a shell...' && echo 'Key pressed. Opening shell...' && /bin/bash",
-            ]
+  rb-roads:
+    env_file: ./docker/docker.envrc
+    container_name: rb-roads
+    networks:
+      - rb-roads-network
+    ports:
+      - 8888:8888
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+    volumes:
+      - ${RB_DATA:-${HOME}/Documents/rb_data}:/home/appuser/rb_data
+    working_dir: /home/appuser/rb_app
+    user: appuser
+    stdin_open: true
+    tty: true
+    entrypoint:
+      [
+        "/bin/bash",
+        "-c",
+        "echo 'Container is running....' && read -p 'Press any key to open a shell...' && echo 'Key pressed. Opening shell...' && /bin/bash /home/appuser/rb_app/scripts/roads_rb",
+      ]
+    command:
+      [
+        "/bin/bash",
+        "-c",
+        "echo 'Container is running....' && read -p 'Press any key to open a shell...' && echo 'Key pressed. Opening shell...' && /bin/bash /home/appuser/rb_app/scripts/roads_rb",
+      ]
 
 networks:
-    rb-roads-network:
-        driver: bridge
+  rb-roads-network:
+    driver: bridge

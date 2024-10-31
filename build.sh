@@ -22,7 +22,7 @@ function perform_compile() {
 }
 if [ "$arch" = "linux" ]
 then
-    CFLAGS+=-std=gnu++2a -fconcepts
+    CFLAGS+="-std=gnu++2a -fconcepts"
     if [[ $src == *"GL"* ]]; then # OpenGL graphics backend
 	LIBS+=$(pkg-config --libs glew)" "$(pkg-config --libs freetype2)" -L/usr/lib "
 	CFLAGS+=$(pkg-config --cflags glew)" "$(pkg-config --cflags freetype2)" -D_USEGL "

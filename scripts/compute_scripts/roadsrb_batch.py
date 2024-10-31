@@ -1,7 +1,13 @@
-#!/usr/bin/python
-import os, sys, subprocess, csv, argparse
+#!python3
+import os
+import subprocess
+import csv
+import argparse
 from ast import literal_eval
 from collections import OrderedDict
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class MissingColumnsError(NotImplementedError):
@@ -78,7 +84,8 @@ class Roads2PopBatchProcessor:
                               stderr=subprocess.STDOUT)
         print('process output:', proc.stdout)
         print(
-            f'Done with RB Roads2Pop serial job. retcode: {proc.returncode}\r\n'
+            f'Done with RB Roads2Pop serial job. retcode: {
+                proc.returncode}\r\n'
         )
 
     def _batchrun(self, **kwds):
@@ -111,19 +118,18 @@ if __name__ == '__main__':
         nargs='+',
         default=None,
         dest='str_params',
-        help=
-        '(serial mode) input parameters for a serial R2P job. Must be written as a quoted tuple: "(site, lat, lon)"'
+        help='(serial mode) input parameters for a serial R2P job. Must be written as a quoted tuple: "(site, lat, lon)"'
     )
     config_method_group.add_argument(
         '--csv',
         type=str,
         default=None,
         dest='csv',
-        help=
-        '(batch mode) absolute path to csv file that contains (site, lat, lon) as columns.'
+        help='(batch mode) absolute path to csv file that contains (site, lat, lon) as columns.'
     )
     args = parser.parse_args()
     str_params = args.str_params
+    mode = None
     if args.str_params is not None:
         mode = 'serial'
         str_params = ' '.join(args.str_params).replace(',', ', ')

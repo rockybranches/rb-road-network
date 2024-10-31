@@ -1,5 +1,6 @@
 import pandas as pd
 import json
+import sys
 
 
 # render_plotly.py:
@@ -8,8 +9,8 @@ import json
 #   3. Plot the dataframe using plotly express
 
 
-def main():
-    with open('/home/robertc/Git/rb-road-network/output/SavannaShoals.json', 'r') as resp:
+def main(args):
+    with open(args[0], 'r') as resp:
         res = json.load(resp)
         center_pt = dict(zip(['lon', 'lat'], res['features']
                              [0]['geometry']['coordinates']))
@@ -33,4 +34,8 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    if len(sys.argv) > 1:
+        main(sys.argv[1:])
+    else:
+        print('Usage: python render_plotly.py <json_file>')
+        sys.exit(1)

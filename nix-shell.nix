@@ -5,36 +5,30 @@
 , shapelib
 , libpng
 , gdal
-, qgis
-, qtbase
-, qtdeclarative
-, qtquickcontrols
-, qtgraphicaleffects
-, qtlocation
-, qtwebsockets
-, qtwebchannel
-, wrapQtAppsHook
+, wget
+, jq
 }:
 
 stdenv.mkDerivation rec {
   pname = "rb-road-network";
-  version = "unstable-2023-03-24";
 
   src = fetchFromGitHub {
-    owner = "RockyBranches";
+    owner = "rocapp";
     repo = "rb-road-network";
   };
-
-  nativeBuildInputs = [ cmake pkgconfig wrapQtAppsHook ];
-  buildInputs = [ shapelib libpng gdal qgis qtbase qtdeclarative qtquickcontrols qtgraphicaleffects qtlocation qtwebsockets qtwebchannel ];
-
-  cmakeFlags = [ "-DWITH_QT=ON" ];
+  buildInputs = [
+    shapelib
+    libpng
+    gdal
+    wget
+    jq
+    cmake
+    pkgconfig
+  ];
 
   meta = with stdenv.lib; {
-    homepage = "https://github.com/RockyBranches/rb-road-network";
+    homepage = "https://github.com/rocapp/rb-road-network";
     description = "GIS toolkit for creating market area reports, including: US county demographics, road-distance market area maps";
-    license = licenses.gpl3Plus;
     platforms = platforms.linux;
-    maintainers = with maintainers; [ cstrahan ];
   };
 }

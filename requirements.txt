@@ -7,3 +7,7 @@ geopy
 matplotlib
 ipython
 jupyter
+geopandas
+requests
+python-dotenv
+plotly
