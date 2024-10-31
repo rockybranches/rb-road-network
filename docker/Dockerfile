@@ -36,16 +36,11 @@ RUN groupadd -r -g 1000 appuser \
     && chown -R appuser:appuser /home/appuser
 USER appuser
 
-# setup python virtualenv for grass
-RUN python3 -m venv /home/appuser/grass_venv
-RUN /bin/bash -c 'source /home/appuser/grass_venv/bin/activate && pip install --upgrade pip setuptools wheel build grass matplotlib numpy scipy pandas'
-
 # setup build environment variables
 ENV USER=appuser
 ENV RB_SRC=/home/appuser/rb_app
 ENV RB_DATA=/home/appuser/rb_data
 ENV LD_LIBRARY_PATH=/usr/local/lib
-ENV GRASS_PYTHON=/home/appuser/grass_venv/bin/python
 WORKDIR $RB_SRC
 
 # copy build files

@@ -1,0 +1,43 @@
+{
+    "features": [
+        {
+            "geometry": {
+                "coordinates": [
+                    -81.09534454345703,
+                    32.0660514831543
+                ],
+                "type": "Point"
+            },
+            "properties": {
+                "marker-color": "#ff0000",
+                "marker-size": "large",
+                "marker-symbol": "circle",
+                "name": "StartPoint"
+            },
+            "type": "Feature"
+        },
+        {
+            "geometry": {
+                "coordinates": [
+                    [
+                        -81.0540542602539,
+                        32.04102325439453
+                    ],
+                    [
+                        -81.052490234375,
+                        32.0897216796875
+                    ]
+                ],
+                "type": "MultiPoint"
+            },
+            "properties": {
+                "marker-color": "#0000ff",
+                "marker-size": "small",
+                "marker-symbol": "circle",
+                "name": "AccessibleArea"
+            },
+            "type": "Feature"
+        }
+    ],
+    "type": "FeatureCollection"
+}
