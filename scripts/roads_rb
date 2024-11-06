@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 echo -e "Hi, welcome to the interactive Rocky Branches Road Network Interface!\n"
 
 read -p "Output path (default: '${RB_SRC}/output/justPopResult.txt'): " -ei "${RB_SRC}/output/justPopResult.txt" outfn
@@ -32,7 +31,7 @@ zoom = $zoom\n
 nthreads = $nthreads\n\n"
 echo -e $settings
 
-CMD="\$RB_SRC/justPop.exe -f \$RB_DATA/output/$(basename ${outfn}) -t $tons_per_person --lat=$lat --lon=$lon --radius=$radius --stride=$stride --nthreads=$nthreads --zoom=$zoom"
+CMD="$RB_SRC/justPop.exe -f ${outfn} -t $tons_per_person --lat=$lat --lon=$lon --radius=$radius --stride=$stride --nthreads=$nthreads --zoom=$zoom"
 echo -e "Full command:\n'$CMD'\n"
 
 OUTCMDFN="${outfn/.txt/.sh}"

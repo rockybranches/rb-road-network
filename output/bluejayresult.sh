@@ -4,5 +4,5 @@
 
 export LD_LIBRARY_PATH=:/usr/local/lib
 
-$RB_SRC/justPop.exe -f $RB_DATA/output/BlueJayResult.txt -t 4.50 --lat=35.4709556 --lon=-81.5175694 --radius=75000 --stride=0.009 --nthreads=16 --zoom=0.5
+/home/robbiec/Git/rb-road-network/justPop.exe -f /home/robbiec/Documents/rb_data/output/bluejayresult.txt -t 4.50 --lat=35.4709556 --lon=-81.5175694 --radius=75000 --stride=0.009 --nthreads=16 --zoom=0.5
 
