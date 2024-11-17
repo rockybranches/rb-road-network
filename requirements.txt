@@ -11,3 +11,5 @@ geopandas
 requests
 python-dotenv
 plotly
+aria2p
+click
