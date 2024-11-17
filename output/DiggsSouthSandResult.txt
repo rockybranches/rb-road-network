@@ -1,0 +1,31 @@
+\begin{tabular}{r|*{6}{l}}
+County & State & 2010 & 2015 & 2020 & 2025 & 2030 \\ 
+\hline
+Clay & AR & 15931 & 15139 & 14472 & 13849 & 13253\\ 
+Crockett & TN & 14588 & 14586 & 14320 & 14251 & 14140\\ 
+Dunklin & MO & 31363 & 30575 & 29870 & 29277 & 28765\\ 
+Dyer & TN & 38318 & 37753 & 37395 & 37516 & 37493\\ 
+Fulton & KY & 6813 & 6238 & 5726 & 5252 & 4789\\ 
+Gibson & TN & 49731 & 49329 & 49257 & 49675 & 49934\\ 
+Haywood & TN & 18812 & 18036 & 17106 & 16567 & 15971\\ 
+Lake & TN & 7827 & 7602 & 7360 & 7261 & 7154\\ 
+Lauderdale & TN & 27721 & 26903 & 25828 & 25760 & 25596\\ 
+Madison & TN & 98249 & 97569 & 97792 & 98142 & 98267\\ 
+Mississippi & AR & 46490 & 44046 & 42319 & 40619 & 39027\\ 
+New Madrid & MO & 16972 & 15764 & 14621 & 13549 & 12554\\ 
+Obion & TN & 31822 & 30561 & 30127 & 29682 & 29135\\ 
+Pemiscot & MO & 18455 & 17856 & 17324 & 16839 & 16447\\ 
+Tipton & TN & 61065 & 61533 & 62278 & 63763 & 64889\\ 
+\\ 
+\hline\hline
+    Totals = &  & 484157 & 473490 & 465795 & 462002 & 457414\newline
+\end{tabular} \\ 
+\begin{tabular}{l|l}
+\hline\hline
+\newline
+ Population increase (2015 to 2030) & -16076 \\ 
+ Percent population increase & -3.4 \\ 
+ Tons needed by market (2015) & 2130705.000  (4.500 tons/person) \\ 
+ Tons needed by market (2030) & 2058363.000  (4.500 tons/person) \\ 
+ Increase in tons needed (2015 to 2030) & -72342.000 \\ 
+\end{tabular}
