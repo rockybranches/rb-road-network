@@ -21,7 +21,7 @@ Tipton & TN & 61065 & 61533 & 62278 & 63763 & 64889\\
 \newline
  Population increase (2015 to 2030) & 15106 \\ 
  Percent population increase & 3.9 \\ 
- Tons needed by market (2015) & 1760782.500  (4.500 tons/person) \\ 
- Tons needed by market (2030) & 1828759.500  (4.500 tons/person) \\ 
- Increase in tons needed (2015 to 2030) & 67977.000 \\ 
+ Tons needed by market (2015) & 1185593.500  (3.030 tons/person) \\ 
+ Tons needed by market (2030) & 1231364.750  (3.030 tons/person) \\ 
+ Increase in tons needed (2015 to 2030) & 45771.180 \\ 
 \end{tabular}

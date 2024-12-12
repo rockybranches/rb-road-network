@@ -6,7 +6,7 @@ export LD_LIBRARY_PATH=:/usr/local/lib
 
 /home/robbiec/Git/rb-road-network/justPop.exe \
     -f /home/robbiec/Git/rb-road-network/output/DiggsSouthSandResultFixed.txt \
-    -t 4.50 \
+    -t 3.03 \
     --lat=36.02899899 \
     --lon=-90.313214999 \
     --radius=75000 \
