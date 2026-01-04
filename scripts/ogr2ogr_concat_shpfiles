@@ -1,44 +1,51 @@
 #!/bin/bash
 
+set -e
+
+# Script to concatenate multiple shapefiles into a single shapefile using ogr2ogr.
+
 # Usage function
 usage() {
-    echo "Usage: $0 [input] [output_dir] [output_filename] [layer_name]"
-    echo "Description:"
-    echo "  Concatenates multiple shapefiles into a single shapefile."
-    echo "Options:"
-    echo "  input           - The input file path"
-    echo "  output_dir      - The output directory path"
-    echo "  output_filename - The output filename"
-    echo "  layer_name      - The name of the layer"
+	echo "Usage: $0 [input] [output_dir] [output_filename] [layer_name]"
+	echo "Description:"
+	echo "  Concatenates multiple shapefiles into a single shapefile."
+	echo "Options:"
+	echo "  input           - The input file path"
+	echo "  output_dir      - The output directory path"
+	echo "  output_filename - The output filename"
+	echo "  layer_name      - The name of the layer"
 }
 
 # Default arguments
-input="./gis_osm_roads_free_1.shp"
-output_dir="../gis_osm_roads_extra/georgia_geom"
+# input path (will be used as the source for concatenation)
+input="$RB_DATA/gis_osm_roads/gis_osm_roads_free_1.shp"
+# output directory
+output_dir="$RB_DATA/gis_osm_roads_extra/georgia_geom"
 output_filename="gis_osm_roads_free_1.shp"
+# specify the layer name
 layer_name="gis_osm_roads_free_1"
 
 # Check if usage is requested
-if [[ "$1" == "--help" || "$1" == "-h" ]]; then
-    usage
-    exit 0
+if [[ $1 == "--help" || $1 == "-h" ]]; then
+	usage
+	exit 0
 fi
 
 # Check if custom arguments are provided
 if [[ $# -eq 4 ]]; then
-    input="$1"
-    output_dir="$2"
-    output_filename="$3"
-    layer_name="$4"
+	input="$1"
+	output_dir="$2"
+	output_filename="$3"
+	layer_name="$4"
 fi
 
 output_path="${output_dir}/${output_filename}"
 
 ogr2ogr \
-    "$output_path" \
-    "$input" \
-    -lco ENCODING=""
+	"${output_path}" \
+	"${input}" \
+	-lco ENCODING=""
 
-for ifn in "${output_dir}"/*/"$input"; do 
-    ogr2ogr -update -append "$output_path" "$ifn" -nln "$layer_name"; 
+for ifn in "${output_dir}"/*/"${input}"; do
+	ogr2ogr -update -append "${output_path}" "${ifn}" -nln "${layer_name}"
 done

@@ -32,6 +32,9 @@ download-gis-osm-roads: backup-gis-osm-roads
 	@echo -e "Downloading updated OSM data to '\${RB_DATA}/gis_osm_roads_downloads'..."
 	./scripts/download-gis-osm-roads.sh
 
+install_deps:
+	./scripts/install_shapelib.sh
+
 docker-compose-down:
 	docker compose down --remove-orphans
 docker-compose-build:
