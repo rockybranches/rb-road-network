@@ -1,5 +1,4 @@
-# syntax = docker/dockerfile:1.0-experimental
-FROM buildpack-deps:buster as rb-roads
+FROM buildpack-deps:bookworm as rb-roads
 
 # dependencies
 RUN apt-get update && \
