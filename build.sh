@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 # rb-road-network/build.sh : build the binary for the specified architecture
 
@@ -21,11 +21,11 @@ RB_DEBUG=${RB_DEBUG:-true} # Set debug flag
 
 echo "RB_DEBUG=${RB_DEBUG}"
 
-function determine_compiler {
+determine_compiler() {
     export -p CXX=g++
 }
 
-function perform_compile() {
+perform_compile() {
     g++ $@
 }
 
