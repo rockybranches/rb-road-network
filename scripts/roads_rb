@@ -1,4 +1,9 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
+
+# scripts/roads_rb : interactively run the full market area + population program
+
+set -e
+
 echo -e "Hi, welcome to the interactive Rocky Branches Road Network Interface!\n"
 
 read -p "Output path (default: '${RB_SRC}/output/justPopResult.txt'): " -ei "${RB_SRC}/output/justPopResult.txt" outfn
@@ -50,7 +55,7 @@ echo -e "Saved the full command to:\n'${OUTCMDFN}'\n"
 
 read -p "Continue? [y]/n: " -ei "y" contflag
 
-if [ $contflag == "y" ];
+if [ "$contflag" = "y" ];
 then
     echo -e "Launching..." && \
 	eval "$CMD" && \

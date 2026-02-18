@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env sh
 
 install_deps() {
     sudo apt install -yq \
