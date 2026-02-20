@@ -96,7 +96,7 @@ void convert_tpp_str2float(std::string tons_str, float *tons_person)
 std::string setup_logging(int);
 std::string setup_logging(int utres)
 {
-  std::string dbfn = RB_DATA_PATH + "/" + "debug-" + std::to_string(utres) + ".log";
+  std::string dbfn = RB_DATA_PATH + "/logs/debug-" + std::to_string(utres) + ".log";
   try 
     {
       // setup a logger with separate sinks (debugging -> file, warning -> console)
@@ -107,18 +107,19 @@ std::string setup_logging(int utres)
       auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(dbfn, true);
       file_sink->set_level(spdlog::level::trace);
 
-      stdplog::sinks_init_list sinks_list{console_sink, file_sink};
-      auto stdplog::logger::logger("rb_log", sinks_list); // instantiate the new logger
+      spdlog::sinks_init_list sinks_list{console_sink, file_sink};
+      const std::string logger_name = "rb_log";
+      auto logger = spdlog::logger(logger_name, sinks_list); // instantiate the new logger
       logger.set_level(spdlog::level::debug);
       
       spdlog::flush_on(spdlog::level::info);  // flush every time an info-or-higher log event occurs
-      spdlog::set_default_logger(logger);  // replace the default logger
+      spdlog::set_default_logger(spdlog::get("rb_log"));  // replace the default logger
+      spdlog::debug("Default logger (rb_log) initialized.");
     }
   catch (const spdlog::spdlog_ex &ex)
     {
       std::cout << "Log init failed: " << ex.what() << std::endl;
     }
-  spdlog::get("rb_log")->info("Logger setup with filepath: " + dbfn);
   return dbfn;
 }
 

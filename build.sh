@@ -15,7 +15,7 @@ echo "RB_SRC=$RB_SRC"
 echo "SRC=$src"
 echo "INCLUDE_PATH=$includes"
 
-LIBS=" -lspdlog -lshp -pthread -lstdc++fs "
+LIBS=" -lfmt -lspdlog -lshp -pthread -lstdc++fs "
 CFLAGS=""
 RB_DEBUG=${RB_DEBUG:-true} # Set debug flag
 
@@ -41,11 +41,11 @@ then
 	CFLAGS+=" -D_TESTRB " # removes dependencies on GTK if set
 	echo "TEST FLAG SET (remove GTK dependencies)"
     fi
-    if [[ "$RB_DEBUG" = "true" ]]; then
+    if [[ "$RB_DEBUG" != '' ]]; then
 	CFLAGS+=" -D_RB_DEBUG " # set debug flag -- sets breakpoints with std::raise(SIGINT)
 	echo 'DEBUG FLAG SET -- Use breakpoints set with `rbtypes.hpp::insert_breakpoint()`'
     fi
-    if [[ "$THRUST_RB" = true ]]; then
+    if [[ "$THRUST_RB" != '' ]]; then
 	CFLAGS+=" "$(pkg-config --cflags cudart-8.0)" "
 	LIBS+=" "$(pkg-config --libs cudart-8.0)" "
 	CFLAGS+=" -D_THRUSTRB " # set Thrust flag -- include CUDA OOP Thrust library
@@ -57,7 +57,7 @@ then
     CFLAGS+=" -o $2.exe " # remember this !! !! *******
     echo "CFLAGS=$CFLAGS"
     echo "LIBS=$LIBS"
-    if [[ "$THRUST_RB" != true ]]; then
+    if [[ "$THRUST_RB" = '' ]]; then
 	export -p COMPILE_ARGS="-Wall -rdynamic -g -I${includes} ${CFLAGS} $src.cc $RB_SRC/src/lodepng.cpp ${LIBS} -std=gnu++2a"
 	echo "COMPILE_ARGS=${COMPILE_ARGS}"
 	perform_compile $COMPILE_ARGS

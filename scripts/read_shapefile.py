@@ -1,24 +1,17 @@
-#!/usr/bin/python3
-import shapefile as shp
-import sys,os
+#!/usr/bin/env python3
+import sys
+from pathlib import Path
+import geopandas as gpd
 
-if __name__=='__main__':
-    dpath = os.environ["RB_DATA"]
-    fpath = "tl_2016_us_county"
-    fpath = "/".join([fpath,]*2)
-    if len(sys.argv) > 1:
-        fpath = sys.argv[-1]
-        fpath = os.path.join(fpath,list(filter(lambda ff: os.path.splitext(ff)[-1]==".shp",
-                                               os.listdir(os.path.join(dpath, fpath))))[0])
-    print("fpath=",fpath)
-    sf = shp.Reader(os.path.join(dpath, fpath))
-    print("fields:", sf.fields)
+rb_data_dirpath = os.environ["RB_DATA"]
 
-    if 'county' in fpath:
-        names = [rec['NAME'] for rec in sf.records()]
-        print("some county names: ", names[0:10], "...")
-        print(len(names))
-        print("number of counties in shp file:", len(names))
-        print("...of approximately 3242 total US counties.")
-    elif 'roads' in fpath:
-        pass
+
+def main(filename: str = "tl_2016_us_county.shp", data_dirpath: str = rb_data_dirpath):
+    fpath = Path(data_dirpath).joinpath(filename)
+    print("Reading from ", fpath)
+    gdf = gpd.read_file(str(fpath.parent))
+    print(gdf.head())
+
+
+if __name__ == "__main__":
+    main()
