@@ -18,6 +18,8 @@
 #include "places.hpp"
 #include "grid.hpp"
 
+#include "spdlog/spdlog.h"
+
 #ifndef _TESTRB
 #include "plot.hpp"
 #define GTK_GRIDDATA_P(gdat) reinterpret_cast<gtkGridData*>(gdat)
@@ -60,7 +62,7 @@ PreGuiProcessor::PreGuiProcessor()
 
 PreGuiProcessor::PreGuiProcessor(float rd, float z, PointRB s, std::string imfn): radius(rd), zoom(z), stride(s), image_fn(imfn)
 {
-  std::cout << "constructor PreGuiprocessor()..." << std::endl;
+  spdlog::debug("constructing PreGuiprocessor with a new States instance...");
   states = new States();
 }
 
