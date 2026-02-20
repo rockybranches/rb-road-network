@@ -45,6 +45,7 @@
             freetype
             cairo
             libxml2
+            spdlog
             python312
             python312Packages.pip
             python312Packages.virtualenv
