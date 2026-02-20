@@ -1,6 +1,27 @@
 # rb-road-network
 
-### Rocky Branches - Road Network Toolkit
+__Rocky Branches - Road Network Toolkit__
+
+## About
+
+**rb-road-network** (Rocky Branches - Road Network Toolkit), a GIS toolkit for creating market area reports.
+
+**Key features:**
+- **Road-distance market area analysis** - Calculate reachable areas based on road network distance from a given point
+- **US county demographics** - Population and demographic data by county
+- **Map generation** - Creates market area maps with visualization styles for QGIS
+
+**Tech stack:**
+- C++ executables (justPop, etc.) for core road network computation
+- Python scripts for data processing and rendering (Plotly)
+- Docker for containerized execution
+- GDAL/OGR, shapelib for GIS operations
+- QGIS style files for visualization
+
+**Typical workflow:**
+1. Provide a lat/lon coordinate and radius (in meters)
+2. The tool calculates which areas are reachable via road network
+3. Generates population estimates and market area maps
 
 ## Usage - Docker Compose
 

@@ -1,25 +1,34 @@
 #!/usr/bin/env bash
-cd $RB_SRC
-echo $(pwd)
+
+# rb-road-network/build.sh : build the binary for the specified architecture
+
+set -e
+
 src=$RB_SRC/src/$1
 src=$(realpath -ms $src)
 includes=$RB_SRC/include/
 includes=$(realpath -ms $includes)
-arch=$3
+arch=${3:-linux}
+
 echo "ARCH=$arch"
 echo "RB_SRC=$RB_SRC"
 echo "SRC=$src"
 echo "INCLUDE_PATH=$includes"
-LIBS=" -lshp -pthread -lstdc++fs "
+
+LIBS=" -lspdlog -lshp -pthread -lstdc++fs "
 CFLAGS=""
 RB_DEBUG=${RB_DEBUG:-true} # Set debug flag
+
 echo "RB_DEBUG=${RB_DEBUG}"
-function determine_compiler {
+
+determine_compiler() {
     export -p CXX=g++
 }
-function perform_compile() {
+
+perform_compile() {
     g++ $@
 }
+
 if [ "$arch" = "linux" ]
 then
     CFLAGS+="-std=gnu++2a -fconcepts"
@@ -32,7 +41,7 @@ then
 	CFLAGS+=" -D_TESTRB " # removes dependencies on GTK if set
 	echo "TEST FLAG SET (remove GTK dependencies)"
     fi
-    if [[ "$RB_DEBUG" = true ]]; then
+    if [[ "$RB_DEBUG" = "true" ]]; then
 	CFLAGS+=" -D_RB_DEBUG " # set debug flag -- sets breakpoints with std::raise(SIGINT)
 	echo 'DEBUG FLAG SET -- Use breakpoints set with `rbtypes.hpp::insert_breakpoint()`'
     fi

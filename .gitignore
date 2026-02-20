@@ -1,6 +1,4 @@
 __pycache__/
-.env
-.envrc
 poptable*.txt
 *.exe
 src/web/exdata/*
