@@ -22,3 +22,13 @@ dependencies = [
     "requests>=2.32.5",
     "scipy>=1.16.3",
 ]
+
+[tool.setuptools]
+include-package-data = true
+packages = [
+    "rb_road_network",
+]
+
+[build-system]
+requires = ["hatchling", "wheel", "setuptools"]
+build-backend = "hatchling.build"
