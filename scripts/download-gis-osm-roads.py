@@ -29,7 +29,7 @@ def unzip_and_overwrite(zip_path, extract_to):
     if os.path.exists(extract_to):
         shutil.rmtree(extract_to)
     os.makedirs(extract_to, exist_ok=True)
-    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+    with zipfile.ZipFile(zip_path, "r") as zip_ref:
         zip_ref.extractall(extract_to)
     print(f"Extracted {zip_path} to {extract_to}")
 
@@ -38,32 +38,37 @@ def unzip_and_overwrite(zip_path, extract_to):
 def start_aria2c_daemon():
     # Check if aria2c is already running
     try:
-        subprocess.check_output(['pgrep', 'aria2c'])
+        subprocess.check_output(["pgrep", "aria2c"])
         print("aria2c daemon is already running.")
     except subprocess.CalledProcessError:
         # Start aria2c with RPC enabled
-        subprocess.Popen(['aria2c', '--enable-rpc', '--rpc-listen-all=false', '--rpc-allow-origin-all'])
+        subprocess.Popen(
+            [
+                "aria2c",
+                "--enable-rpc",
+                "--rpc-listen-all=false",
+                "--rpc-allow-origin-all",
+            ]
+        )
         print("Started aria2c daemon with RPC enabled.")
         # Give aria2c some time to start
         time.sleep(2)
 
-        
+
 # Function to download shapefiles for specified states
 def download_shapefiles(states):
     # Initialize aria2p API
-    aria2 = aria2p.API(
-        aria2p.Client(
-            host="http://localhost",
-            port=6800,
-            secret=""
-        )
-    )
+    aria2 = aria2p.API(aria2p.Client(host="http://localhost", port=6800, secret=""))
 
     # ensure download directory exists
-    download_dir = os.path.normpath(os.path.join(os.getenv("RB_DATA"), "gis_osm_roads_downloads"))
+    download_dir = os.path.normpath(
+        os.path.join(os.getenv("RB_DATA"), "gis_osm_roads_downloads")
+    )
 
     # Base URL and referer
-    base_url = "https://download.geofabrik.de/north-america/us/{state}-latest-free.shp.zip"
+    base_url = (
+        "https://download.geofabrik.de/north-america/us/{state}-latest-free.shp.zip"
+    )
     referer = "https://download.geofabrik.de/north-america/us.html"
 
     # Iterate over each state and add download
@@ -73,7 +78,7 @@ def download_shapefiles(states):
             "referer": referer,
             "out": f"{state}-latest-free.shp.zip",
             "dir": download_dir,
-            "continue": "true"  # Ensure downloads can be resumed
+            "continue": "true",  # Ensure downloads can be resumed
         }
         try:
             download = aria2.add_uris([url], options=options)
@@ -89,7 +94,9 @@ def download_shapefiles(states):
             print("All downloads completed.")
             break
         for download in active_downloads:
-            print(f"Downloading {download.name}: {download.progress_string()} at {download.download_speed_string()}")
+            print(
+                f"Downloading {download.name}: {download.progress_string()} at {download.download_speed_string()}"
+            )
         time.sleep(5)
 
     # Unzip each downloaded file to the specified directory
@@ -106,7 +113,7 @@ def download_shapefiles(states):
 
 # Click command-line interface
 @click.command()
-@click.argument('states', nargs=-1)
+@click.argument("states", nargs=-1)
 def main(states):
     """
     Download shapefiles for specified STATES using aria2.
@@ -121,5 +128,6 @@ def main(states):
     # Download shapefiles
     download_shapefiles(states)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
