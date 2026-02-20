@@ -15,7 +15,7 @@ echo "RB_SRC=$RB_SRC"
 echo "SRC=$src"
 echo "INCLUDE_PATH=$includes"
 
-LIBS=" -lshp -pthread -lstdc++fs "
+LIBS=" -lspdlog -lshp -pthread -lstdc++fs "
 CFLAGS=""
 RB_DEBUG=${RB_DEBUG:-true} # Set debug flag
 
@@ -41,7 +41,7 @@ then
 	CFLAGS+=" -D_TESTRB " # removes dependencies on GTK if set
 	echo "TEST FLAG SET (remove GTK dependencies)"
     fi
-    if [[ "$RB_DEBUG" = true ]]; then
+    if [[ "$RB_DEBUG" = "true" ]]; then
 	CFLAGS+=" -D_RB_DEBUG " # set debug flag -- sets breakpoints with std::raise(SIGINT)
 	echo 'DEBUG FLAG SET -- Use breakpoints set with `rbtypes.hpp::insert_breakpoint()`'
     fi

@@ -12,6 +12,9 @@
 #include <experimental/filesystem>
 /* experimental filesystem namespace */
 namespace fs = std::experimental::filesystem;
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/basic_file_sink.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
 #include "rbtypes.hpp"
 using namespace rb;
 #include "utils.hpp"
@@ -90,19 +93,45 @@ void convert_tpp_str2float(std::string tons_str, float *tons_person)
   std::cout << "(convert_tpp_str2float) output: " << std::fixed << *tons_person << std::endl;
 }
 
+std::string setup_logging(int);
+std::string setup_logging(int utres)
+{
+  std::string dbfn = RB_DATA_PATH + "/" + "debug-" + std::to_string(utres) + ".log";
+  try 
+    {
+      // setup a logger with separate sinks (debugging -> file, warning -> console)
+      auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+      console_sink->set_level(spdlog::level::warn);
+      console_sink->set_pattern("[rb_roads] [%^%l%$] %v");
+      
+      auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(dbfn, true);
+      file_sink->set_level(spdlog::level::trace);
+
+      stdplog::sinks_init_list sinks_list{console_sink, file_sink};
+      auto stdplog::logger::logger("rb_log", sinks_list); // instantiate the new logger
+      logger.set_level(spdlog::level::debug);
+      
+      spdlog::flush_on(spdlog::level::info);  // flush every time an info-or-higher log event occurs
+      spdlog::set_default_logger(logger);  // replace the default logger
+    }
+  catch (const spdlog::spdlog_ex &ex)
+    {
+      std::cout << "Log init failed: " << ex.what() << std::endl;
+    }
+  spdlog::get("rb_log")->info("Logger setup with filepath: " + dbfn);
+  return dbfn;
+}
+
 int main(int argc, char *argv[])
 {
+  /*
+    Setup timestamp, logging.
+  */
   utres = std::time(nullptr);
-  std::string dbfn =
-      (fs::path(rb::RB_DATA_PATH) / "logs" / ("debug-" + std::string(std::getenv("USER")) + "-" + std::to_string(utres) + ".log")).string();
-  std::ofstream debug_file(dbfn);
-#if defined(_RB_DEBUG) && (_RB_DEBUG == true || _RB_DEBUG == 1)
-  std::cout << "Debug Log File: " << dbfn << std::endl;
-#endif
-  freopen(dbfn.c_str(), "a+", stdout);
-  std::cout << "Debug Log File: " << dbfn << std::endl;
-
-  /* default params */
+  std::string dbfn = setup_logging(utres); // setup logging, return the log filepath
+  /*
+    Default params
+  */
   std::string tons_str = "4.50";
   float tons_person;
   std::string filename = "poptable" + std::to_string(utres) + ".txt";

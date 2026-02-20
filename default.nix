@@ -12,6 +12,7 @@
   freetype,
   cairo,
   libxml2,
+  spdlog,
 }:
 
 stdenv.mkDerivation rec {
@@ -36,6 +37,7 @@ stdenv.mkDerivation rec {
     freetype
     cairo
     libxml2
+    spdlog
   ];
 
   buildPhase = ''
@@ -57,54 +59,6 @@ stdenv.mkDerivation rec {
       $(pkg-config --cflags --libs gtk+-3.0) \
       $(pkg-config --cflags --libs gmodule-export-2.0) \
       -lcairo -lxml2 -std=gnu++2a
-
-    g++ -std=gnu++2a -fconcepts -D_TESTRB \
-      -I${src}/include \
-      -o $out/bin/testGrid \
-      ${src}/src/testGrid.cc ${src}/src/lodepng.cpp \
-      -lshp -pthread -lstdc++fs -std=gnu++2a
-
-    g++ -std=gnu++2a -fconcepts -D_TESTRB \
-      -I${src}/include \
-      -o $out/bin/testGridImage \
-      ${src}/src/testGridImage.cc ${src}/src/lodepng.cpp \
-      -lshp -pthread -lstdc++fs -std=gnu++2a
-
-    g++ -std=gnu++2a -fconcepts -D_TESTRB \
-      -I${src}/include \
-      -o $out/bin/testMerc \
-      ${src}/src/testMerc.cc ${src}/src/lodepng.cpp \
-      -lshp -pthread -lstdc++fs -std=gnu++2a
-
-    g++ -std=gnu++2a -fconcepts -D_TESTRB \
-      -I${src}/include \
-      -o $out/bin/testCounties \
-      ${src}/src/testCounties.cc ${src}/src/lodepng.cpp \
-      -lshp -pthread -lstdc++fs -std=gnu++2a
-
-    g++ -std=gnu++2a -fconcepts -D_TESTRB \
-      -I${src}/include \
-      -o $out/bin/testRBtypes \
-      ${src}/src/testRBtypes.cc ${src}/src/lodepng.cpp \
-      -lshp -pthread -lstdc++fs -std=gnu++2a
-
-    g++ -std=gnu++2a -fconcepts -D_TESTRB \
-      -I${src}/include \
-      -o $out/bin/create_graph \
-      ${src}/src/create_graph.cc ${src}/src/lodepng.cpp \
-      -lshp -pthread -lstdc++fs -std=gnu++2a
-
-    g++ -std=gnu++2a -fconcepts -D_TESTRB \
-      -I${src}/include \
-      -o $out/bin/plot_graph \
-      ${src}/src/plot_graph.cc ${src}/src/lodepng.cpp \
-      -lshp -pthread -lstdc++fs -std=gnu++2a
-
-    g++ -std=gnu++2a -fconcepts -D_TESTRB \
-      -I${src}/include \
-      -o $out/bin/traverse_graph \
-      ${src}/src/traverse_graph.cc ${src}/src/lodepng.cpp \
-      -lshp -pthread -lstdc++fs -std=gnu++2a
 
     runHook postBuild
   '';
