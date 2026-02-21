@@ -17,6 +17,7 @@ Welcome to the **rb-road-network** project! This document provides essential gui
 ## Developer Workflows
 
 ### Building the Project
+
 - **Linux:**
   ```bash
   src=justPop exe=justPop make arch=linux
@@ -31,6 +32,7 @@ Welcome to the **rb-road-network** project! This document provides essential gui
   ```
 
 ### Running Key Scripts
+
 - **Generate Population Table:**
   ```bash
   ./justPop.exe \
@@ -58,6 +60,7 @@ Welcome to the **rb-road-network** project! This document provides essential gui
      ```
 
 ### Environment Setup
+
 - Use `direnv` to manage environment variables. Key variables include:
   ```bash
   export RB_SRC=$HOME/Git/rb-road-network
@@ -67,6 +70,7 @@ Welcome to the **rb-road-network** project! This document provides essential gui
   ```
 
 ## Project-Specific Conventions
+
 - **C++ Code:**
   - Header files are in `include/`.
   - Source files are in `src/`.
@@ -79,6 +83,7 @@ Welcome to the **rb-road-network** project! This document provides essential gui
   - Use `docker.envrc` for environment-specific configurations.
 
 ## Key Files and Directories
+
 - `src/`: Core C++ source files.
 - `scripts/`: Python scripts for data processing.
 - `resources/`: GIS resources like QGIS styles and shapefiles.
@@ -86,12 +91,14 @@ Welcome to the **rb-road-network** project! This document provides essential gui
 - `include/`: Header files for C++ components.
 
 ## Troubleshooting
+
 - **Copying Files from Docker Containers:**
   ```bash
   docker cp <container_id>:/path/to/file ./local/path
   ```
 
 ## Notes
+
 - Refer to `README.md` for additional examples and usage details.
 - Ensure all new scripts and modules follow the existing directory structure and naming conventions.
 

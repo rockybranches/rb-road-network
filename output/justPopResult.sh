@@ -4,5 +4,5 @@
 
 export LD_LIBRARY_PATH=:/usr/local/lib
 
-/home/robbiec/Git/rb-road-network/justPop.exe -f /home/robbiec/Git/rb-road-network/output/justPopResult.txt -t 4.50 --lat=33.732 --lon=-84.4166 --radius=75000 --stride=0.009 --nthreads=16 --zoom=0.5
+/home/robbiec/Git/rb-road-network/justPop.exe -f /home/robbiec/Git/rb-road-network/output/justPopResult.txt -t 4.50 --lat=33.732 --lon=-84.4166 --radius=75000 --stride=0.009 --nthreads=8 --zoom=0.5
 
