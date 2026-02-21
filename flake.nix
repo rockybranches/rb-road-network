@@ -35,6 +35,8 @@
           buildInputs = with pkgs; [
             cmake
             pkg-config
+            gnumake
+            gcc
             gdal
             shapelib
             libpng
@@ -71,9 +73,10 @@
           ];
 
           shellHook = ''
-            export RB_SRC=${self}
-            export RB_PATH=$RB_SRC
-            export XDG_DATA_DIRS=$RB_PATH/share/
+            export RB_SRC="${self}"
+            export RB_PATH="$RB_SRC"
+            export RB_DATA="$HOME/Documents/rb_data"
+            export XDG_DATA_DIRS="$RB_PATH/share/"
           '';
         };
       }
