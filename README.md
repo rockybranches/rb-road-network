@@ -20,18 +20,19 @@ __Rocky Branches - Road Network Toolkit__
 
 **Typical workflow:**
 1. Provide a lat/lon coordinate and radius (in meters)
+##
+	
 2. The tool calculates which areas are reachable via road network
-3. Generates population estimates and market area maps
+3. _Produces:_
+   + LaTeX-formatted population estimate timetable (`./output/OUTPUT.txt`).
+   + GIS
+   
 
 ## Usage - Docker Compose
 
-**current ~ October 15, 2024**
+##
+	docker compose run rb-roads
 
-```bash
-
-docker compose run rb-roads
-
-```
 
 ## Usage - Docker
 
