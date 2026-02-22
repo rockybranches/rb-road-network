@@ -114,7 +114,6 @@ std::string setup_logging(int utres)
       
       spdlog::flush_on(spdlog::level::info);  // flush every time an info-or-higher log event occurs
       spdlog::set_default_logger(spdlog::get("rb_log"));  // replace the default logger
-      spdlog::debug("Default logger (rb_log) initialized.");
     }
   catch (const spdlog::spdlog_ex &ex)
     {

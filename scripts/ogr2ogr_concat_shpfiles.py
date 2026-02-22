@@ -177,13 +177,13 @@ def append_shapefiles(output_path, input_dir, layer_name, config):
 def get_default_input():
     """Get default input path from RB_DATA environment variable."""
     rb_data = os.environ.get("RB_DATA", "/data/rb_data")
-    return f"{rb_data}/gis_osm_roads/gis_osm_roads_free_1.shp"
+    return f"{rb_data}/gis_osm_roads_extra/georgia_geom"
 
 
 def get_default_output_dir():
     """Get default output directory from RB_DATA environment variable."""
     rb_data = os.environ.get("RB_DATA", "/data/rb_data")
-    return f"{rb_data}/gis_osm_roads_extra/georgia_geom"
+    return f"{rb_data}/gis_osm_roads/gis_osm_roads_free_1.shp"
 
 
 @click.command()

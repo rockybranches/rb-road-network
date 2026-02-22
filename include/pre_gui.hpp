@@ -62,7 +62,7 @@ PreGuiProcessor::PreGuiProcessor()
 
 PreGuiProcessor::PreGuiProcessor(float rd, float z, PointRB s, std::string imfn): radius(rd), zoom(z), stride(s), image_fn(imfn)
 {
-  spdlog::debug("constructing PreGuiprocessor with a new States instance...");
+  std::cout << "constructing PreGuiprocessor with a new States instance..." << std::endl;
   states = new States();
 }
 
