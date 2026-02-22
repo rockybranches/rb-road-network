@@ -56,8 +56,6 @@ struct County {
     */
     label_loc[0] = loc[0];
     label_loc[1] = loc[1];
-    // label_loc[0] = area[0]*0.995;
-    // label_loc[1] = area[3]*1.011;
   }
   void calc_county_availability_singlePt(PointRB pt)
   {
@@ -149,7 +147,7 @@ void loadCountySHP(float start_pt[2], float radius,
   std::vector<County>().swap(counties); // empty counties vector
   if(zoom < 0.5)
     radius /= (zoom + 0.5);
-  float D = radius * 2;
+  float D = radius * 2;  // enables the search radius to fill the AoI polygon
   printf("loading counties within square L=%.1f m\n",radius);
   SHPHandle shphand = SHPOpen(fn.c_str(), "rb");
   int shpN, shptype;
@@ -251,7 +249,7 @@ public:
   std::string name;
   std::string abbrev;
   PointRoad bound; // mercator bound
-  Polygon<PointRB> *shape; // county shape defined by bound
+  Polygon<PointRB> *shape; // shape defined by bound
   rb::Area area;
   State(std::string nm, std::string ab, PointRoad bd): name(nm), abbrev(ab), bound(bd)
   {
@@ -268,6 +266,7 @@ public:
   int stabbrev_ix;
   States()
   {
+    std::cout << "Opening handler for States dbf..." << std::endl;
     DBFHandle dbfhand;
     openStateDBF(&dbfhand);
     stname_ix = DBFGetFieldIndex(dbfhand, "NAME");
@@ -284,6 +283,7 @@ public:
       {
 	openStateDBF(&dbfhand);
 	std::string st_name = std::string(DBFReadStringAttribute(dbfhand, si, stname_ix));
+	std::cout << "Opening state DBF for " << st_name << std::endl;
 	DBFClose(dbfhand);
 	openStateDBF(&dbfhand);
 	std::string st_abbrev = std::string(DBFReadStringAttribute(dbfhand, si, stabbrev_ix));
