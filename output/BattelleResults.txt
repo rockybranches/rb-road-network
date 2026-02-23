@@ -1,0 +1,32 @@
+\begin{tabular}{r|*{6}{l}}
+County & State & 2010 & 2015 & 2020 & 2025 & 2030 \\ 
+\hline
+Bartow & GA & 100712 & 117543 & 136635 & 158780 & 183447\\ 
+Catoosa & GA & 65773 & 74174 & 83222 & 93176 & 104242\\ 
+Chattooga & GA & 27335 & 28997 & 30773 & 32657 & 34557\\ 
+Cherokee & AL & 25973 & 25741 & 25835 & 25778 & 25709\\ 
+Dade & GA & 16587 & 17925 & 19234 & 20632 & 21836\\ 
+DeKalb & AL & 71169 & 71198 & 71629 & 72394 & 73615\\ 
+Floyd & GA & 97696 & 102613 & 107598 & 112799 & 118161\\ 
+Franklin & TN & 41779 & 44103 & 45531 & 46833 & 48035\\ 
+Gordon & GA & 54925 & 60375 & 66191 & 72509 & 79377\\ 
+Hamilton & TN & 326104 & 327665 & 328290 & 329514 & 329365\\ 
+Jackson & AL & 53184 & 52207 & 51736 & 51057 & 50424\\ 
+Marion & TN & 27827 & 27702 & 27504 & 27591 & 27518\\ 
+Marshall & AL & 93129 & 94577 & 96219 & 98049 & 100136\\ 
+Murray & GA & 42243 & 48665 & 55671 & 63527 & 72794\\ 
+Walker & GA & 66190 & 69994 & 73835 & 77810 & 81254\\ 
+Whitfield & GA & 96900 & 105163 & 114157 & 123979 & 134561\\ 
+\\ 
+\hline\hline
+    Totals = &  & 1207526 & 1268642 & 1334060 & 1407085 & 1485031\newline
+\end{tabular} \\ 
+\begin{tabular}{l|l}
+\hline\hline
+\newline
+ Population increase (2015 to 2030) & 216389 \\ 
+ Percent population increase & 17.1 \\ 
+ Tons needed by market (2015) & 5708889.000  (4.500 tons/person) \\ 
+ Tons needed by market (2030) & 6682639.500  (4.500 tons/person) \\ 
+ Increase in tons needed (2015 to 2030) & 973750.500 \\ 
+\end{tabular}
