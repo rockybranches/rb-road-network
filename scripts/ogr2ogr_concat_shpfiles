@@ -41,10 +41,10 @@ fi
 
 output_path="$(realpath ${output_dir}/${output_filename})"
 
-ogr2ogr \
-	"${output_path}" \
-	"${input}" \
-	-lco ENCODING=""
+# ogr2ogr \
+# 	"${output_path}" \
+# 	"${input}" \
+# 	-lco ENCODING=""
 
 for ifn in "$(realpath ${input})"; do
     echo "appending '${ifn}'..."

@@ -1,4 +1,8 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
+
+# rb-road-network/scripts/_prebuild_setup.sh
+
+set -e
 
 if [[ ! -v "$RB_SRC" ]]; then
     export RB_SRC="$(pwd)"

@@ -2,6 +2,9 @@ import os
 import pandas as pd
 import traceback
 
+# rb-road-network/scripts/fix_county_pop_csvs.py
+# apply data munging to prepare county population CSVs
+
 rb_data_path = os.getenv('RB_DATA')
 cpop_path = os.path.join(rb_data_path, 'county_pop')
 
