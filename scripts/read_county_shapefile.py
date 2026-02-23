@@ -17,4 +17,4 @@ if __name__=='__main__':
         print("number of counties in shp file:", len(names))
         print("...of approximately 3242 total US counties.")
     elif 'roads' in fpath:
-        
+        raise NotImplementedError("reading roads not implemented here.")

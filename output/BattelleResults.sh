@@ -4,5 +4,13 @@
 
 export LD_LIBRARY_PATH=:/usr/local/lib
 
-/home/robbiec/Git/rb-road-network/justPop.exe -f /home/robbiec/Git/rb-road-network/output/BattelleResults.txt -t 4.50 --lat=37.7820609 --lon=-122.4691187 --radius=75000 --stride=0.009 --nthreads=32 --zoom=0.5
+/home/robbiec/Git/rb-road-network/justPop.exe \
+    -f /home/robbiec/Git/rb-road-network/output/BattelleResults.txt \
+    -t 4.50 \
+    --lat=34.64944 \
+    --lon=-85.56528 \
+    --radius=75000 \
+    --stride=0.009 \
+    --nthreads=16 \
+    --zoom=0.5
 
