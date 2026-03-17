@@ -18,7 +18,6 @@ from pathlib import Path
 
 import click
 
-
 DEFAULT_OUTPUT = "output/justPopResult.txt"
 DEFAULT_TONS_PER_PERSON = 4.50
 DEFAULT_LAT = 33.732

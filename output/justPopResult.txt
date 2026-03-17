@@ -17,9 +17,9 @@ Fulton & GA & 1047216 & 1114788 & 1192726 & 1273988 & 1356515\\
 Gwinnett & GA & 825818 & 910677 & 1006914 & 1113479 & 1208392\\ 
 Hall & GA & 197394 & 232285 & 273490 & 322126 & 379301\\ 
 Haralson & GA & 30062 & 33270 & 36779 & 40666 & 44436\\ 
+Heard & GA & 11898 & 13171 & 14407 & 15679 & 17033\\ 
 Henry & GA & 206987 & 247235 & 293903 & 347964 & 407649\\ 
 Jasper & GA & 14731 & 17344 & 20237 & 23572 & 27065\\ 
-Meriwether & GA & 23398 & 25235 & 27039 & 28896 & 30713\\ 
 Newton & GA & 107048 & 129789 & 157414 & 191000 & 227537\\ 
 Paulding & GA & 27635 & 29962 & 32514 & 35299 & 37974\\ 
 Polk & GA & 43228 & 46462 & 49787 & 53360 & 57178\\ 
@@ -28,14 +28,14 @@ Spalding & GA & 66203 & 72950 & 80296 & 88300 & 96851\\
 Walton & GA & 91068 & 103882 & 118742 & 135756 & 153053\\ 
 \\ 
 \hline\hline
-    Totals = &  & 4908913 & 5467880 & 6106271 & 6823732 & 7563357\newline
+    Totals = &  & 4897413 & 5455816 & 6093639 & 6810515 & 7549677\newline
 \end{tabular} \\ 
 \begin{tabular}{l|l}
 \hline\hline
 \newline
- Population increase (2015 to 2030) & 2095477 \\ 
- Percent population increase & 38.3 \\ 
- Tons needed by market (2015) & 24605460.000  (4.500 tons/person) \\ 
- Tons needed by market (2030) & 34035108.000  (4.500 tons/person) \\ 
- Increase in tons needed (2015 to 2030) & 9429646.000 \\ 
+ Population increase (2015 to 2030) & 2093861 \\ 
+ Percent population increase & 38.4 \\ 
+ Tons needed by market (2015) & 24551172.000  (4.500 tons/person) \\ 
+ Tons needed by market (2030) & 33973548.000  (4.500 tons/person) \\ 
+ Increase in tons needed (2015 to 2030) & 9422374.000 \\ 
 \end{tabular}
