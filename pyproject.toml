@@ -24,6 +24,9 @@ dependencies = [
     "scipy>=1.16.3",
 ]
 
+[project.scripts]
+rb-road-network = "rb_road_network.cli:cli"
+
 [tool.setuptools]
 include-package-data = true
 packages = [

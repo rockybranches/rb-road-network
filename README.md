@@ -28,7 +28,23 @@ __Rocky Branches - Road Network Toolkit__
    + GIS
    
 
-## Usage - Docker Compose
+## Usage
+
+### Python Interactive CLI
+
+##
+	# If you haven't yet,
+	# ensure the `uv` environment is initialized.
+	
+	./scripts/uv-full-sync.sh
+	
+	. ./.venv/bin/activate
+	
+	
+	# run the CLI
+	rb-road-network run
+
+### Docker Compose
 
 ##
 	docker compose run rb-roads
