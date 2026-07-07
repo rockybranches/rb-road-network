@@ -9,8 +9,10 @@ Usage:
     rb-road-network run          # Interactive mode
     rb-road-network run --help   # Show options
     rb-road-network run -f output.txt -t 4.5 --lat 33.732 --lon -84.4166
+    rb-road-network batch --csv batch_inputs.csv
 """
 
+import csv
 import os
 import sys
 import subprocess
@@ -80,6 +82,36 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
     script_path.write_text(script_content)
     script_path.chmod(0o755)
     return script_path
+
+
+def _render_map(output_path: Path, rb_src: Path) -> None:
+    """Invoke render_plotly.py to produce a PNG map from the JSON result."""
+    json_path = output_path.with_suffix(".json")
+    png_path = output_path.with_suffix(".png")
+    render_script = rb_src / "render_scripts" / "render_plotly.py"
+    if not render_script.exists():
+        click.echo(f"(skipping render: render script not found at {render_script})")
+        return
+    if not json_path.exists():
+        click.echo(f"(skipping render: JSON output not found at {json_path})")
+        return
+    click.echo(f"Rendering map to {png_path} ...")
+    env = os.environ.copy()
+    env["LD_LIBRARY_PATH"] = env.get("LD_LIBRARY_PATH", "") + ":/usr/local/lib"
+    try:
+        subprocess.run(
+            [sys.executable, str(render_script), str(json_path), "--output", str(png_path)],
+            cwd=str(rb_src),
+            env=env,
+            check=True,
+        )
+        click.echo(f"Map saved to: {png_path}")
+    except subprocess.CalledProcessError as e:
+        click.secho(
+            f"Warning: map rendering failed (exit code {e.returncode}).",
+            fg="yellow",
+            err=True,
+        )
 
 
 @click.group()
@@ -160,6 +192,11 @@ def cli():
     default=None,
     help="Path to RB_SRC directory (default: $RB_SRC or current directory)",
 )
+@click.option(
+    "--render/--no-render",
+    default=True,
+    help="Render a map PNG after computation (default: render)",
+)
 def run(
     output,
     tons_per_person,
@@ -172,6 +209,7 @@ def run(
     no_exec,
     yes,
     rb_src,
+    render,
 ):
     """Run the population analysis."""
     if rb_src is None:
@@ -300,7 +338,7 @@ nthreads = {nthreads}
     env["LD_LIBRARY_PATH"] = env.get("LD_LIBRARY_PATH", "") + ":/usr/local/lib"
 
     try:
-        result = subprocess.run(
+        subprocess.run(
             cmd,
             shell=True,
             cwd=str(rb_src),
@@ -313,6 +351,158 @@ nthreads = {nthreads}
             f"Error: Command failed with exit code {e.returncode}", fg="red", err=True
         )
         sys.exit(e.returncode)
+
+    if render:
+        _render_map(output, rb_src)
+
+
+@cli.command()
+@click.option(
+    "--csv",
+    "csv_file",
+    type=click.Path(exists=True, path_type=Path),
+    required=True,
+    help="Path to CSV file with columns: site, lat, lon",
+)
+@click.option(
+    "-t",
+    "--tons-per-person",
+    type=float,
+    default=DEFAULT_TONS_PER_PERSON,
+    show_default=True,
+    help="Tons per person",
+)
+@click.option(
+    "-r",
+    "--radius",
+    type=int,
+    default=DEFAULT_RADIUS,
+    show_default=True,
+    help="Radius in meters",
+)
+@click.option(
+    "-s",
+    "--stride",
+    type=float,
+    default=DEFAULT_STRIDE,
+    show_default=True,
+    help="Stride length",
+)
+@click.option(
+    "-h",
+    "--nthreads",
+    type=int,
+    default=None,
+    help="CPU threads (default: auto-detect)",
+)
+@click.option(
+    "-z",
+    "--zoom",
+    type=float,
+    default=DEFAULT_ZOOM,
+    show_default=True,
+    help="Zoom ratio",
+)
+@click.option(
+    "--output-dir",
+    type=click.Path(path_type=Path),
+    default=None,
+    help="Directory for output files (default: <rb_src>/output/)",
+)
+@click.option(
+    "--rb-src",
+    type=click.Path(exists=True, path_type=Path),
+    default=None,
+    help="Path to RB_SRC directory (default: $RB_SRC or current directory)",
+)
+@click.option(
+    "--render/--no-render",
+    default=True,
+    help="Render a map PNG for each result (default: render)",
+)
+@click.option(
+    "--no-exec",
+    is_flag=True,
+    help="Save scripts but don't execute",
+)
+def batch(csv_file, tons_per_person, radius, stride, nthreads, zoom, output_dir, rb_src, render, no_exec):
+    """Run population analysis for multiple sites from a CSV file.
+
+    The CSV must contain columns: site, lat, lon
+    """
+    if rb_src is None:
+        rb_src = get_rb_src()
+
+    if output_dir is None:
+        output_dir = rb_src / "output"
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    if nthreads is None:
+        nthreads = os.cpu_count() or 4
+
+    exe_path = get_justpop_exe(rb_src)
+
+    required_cols = {"site", "lat", "lon"}
+    rows = []
+    with open(csv_file, newline="") as f:
+        reader = csv.DictReader(f)
+        headers = {h.lower() for h in (reader.fieldnames or [])}
+        if not required_cols.issubset(headers):
+            missing = required_cols - headers
+            raise click.ClickException(
+                f"CSV is missing required columns: {', '.join(sorted(missing))}"
+            )
+        for row in reader:
+            rows.append({k.lower(): v for k, v in row.items()})
+
+    if not rows:
+        click.echo("No rows found in CSV. Nothing to do.")
+        return
+
+    click.echo(f"Starting batch run for {len(rows)} site(s) from {csv_file}\n")
+
+    env = os.environ.copy()
+    env["LD_LIBRARY_PATH"] = env.get("LD_LIBRARY_PATH", "") + ":/usr/local/lib"
+
+    for row in rows:
+        site = "".join(c for c in row["site"] if c not in ' /\'":\t')
+        lat = float(row["lat"])
+        lon = float(row["lon"])
+        output = output_dir / f"{site}Result.txt"
+
+        cmd = build_command(exe_path, output, tons_per_person, lat, lon, radius, stride, nthreads, zoom)
+        script_path = save_script(output, cmd, rb_src)
+
+        click.echo(f"[{site}] lat={lat}, lon={lon}")
+        click.echo(f"  output: {output}")
+        click.echo(f"  script: {script_path}")
+
+        if no_exec:
+            click.echo("  (skipping execution: --no-exec)")
+            continue
+
+        click.echo("  Launching...")
+        try:
+            subprocess.run(
+                cmd,
+                shell=True,
+                cwd=str(rb_src),
+                env=env,
+                check=True,
+            )
+            click.echo("  ...done.")
+        except subprocess.CalledProcessError as e:
+            click.secho(
+                f"  Error: [{site}] failed with exit code {e.returncode}",
+                fg="red",
+                err=True,
+            )
+            continue
+
+        if render:
+            _render_map(output, rb_src)
+
+    click.echo("\nBatch run complete.")
 
 
 if __name__ == "__main__":

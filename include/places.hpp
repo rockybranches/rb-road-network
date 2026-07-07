@@ -150,6 +150,8 @@ void loadCountySHP(float start_pt[2], float radius,
   float D = radius * 2;  // enables the search radius to fill the AoI polygon
   printf("loading counties within square L=%.1f m\n",radius);
   SHPHandle shphand = SHPOpen(fn.c_str(), "rb");
+  if (!shphand)
+    throw std::runtime_error("Unable to open county shapefile: " + fn);
   int shpN, shptype;
   double minBound[4];
   double maxBound[4];
@@ -277,6 +279,8 @@ public:
     int shpN, shptype;
     double minBound[4], maxBound[4];
     SHPHandle shphand = SHPOpen(RB_STATES_PATH.c_str(), "rb");
+    if (!shphand)
+      throw std::runtime_error("Unable to open states shapefile: " + RB_STATES_PATH);
     SHPGetInfo(shphand,&shpN,&shptype,minBound,maxBound);
     PointRB mxy;
     for(int si=0; si < shpN; si++)
