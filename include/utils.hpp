@@ -691,10 +691,16 @@ std::vector<PointRoad> openSHP(PointRB& spt, float R, float zoom,
     };
   std::cout << "loading roads within R : L=" << R << " meters" << std::endl;
   fs::path gis_extra_path = fs::path(rb::RB_DATA_PATH) / "gis_osm_roads_extra/";
+  if (!fs::exists(gis_extra_path))
+    throw std::runtime_error("Shapefile directory not found: " + gis_extra_path.string());
   for(const auto & entry : filesystem::directory_iterator(gis_extra_path))
     {
       shapepath = append_fn(entry.path(),"");
       shphand = SHPOpen(shapepath.c_str(), "rb");
+      if (!shphand) {
+        std::cerr << "(openSHP) Warning: unable to open shapefile: " << shapepath << std::endl;
+        continue;
+      }
       SHPGetInfo(shphand,&shpN,&shptype,minBound,maxBound);
       strvec snvec = str_split(entry.path().stem().string(),"_geom");
       std::string snm = snvec.at(0);
@@ -716,6 +722,8 @@ std::vector<PointRoad> openSHP(PointRB& spt, float R, float zoom,
 	}
     }
   std::cout << "(openSHP) primary roads shapefile path: " << shapefn << std::endl;
+  if (shapefn.empty())
+    throw std::runtime_error("No primary roads shapefile found for the requested area. Check that road data is available in: " + gis_extra_path.string());
   io::CSVReader<2, io::trim_chars<' '>, io::double_quote_escape<',','\"'>>
     csvfile(fs::path(RB_DATA_PATH) / "state_borders.csv");
   csvfile.read_header(io::ignore_extra_column, "State", "Bordering States");
@@ -746,6 +754,10 @@ std::vector<PointRoad> openSHP(PointRB& spt, float R, float zoom,
     {
       std::cout << "(openSHP) loading roads shpfile: " << shpfn << std::endl;
       shphand = SHPOpen(shpfn.c_str(), "rb");
+      if (!shphand) {
+        std::cerr << "(openSHP) Warning: unable to open shapefile: " << shpfn << std::endl;
+        continue;
+      }
       SHPGetInfo(shphand,&shpN,&shptype,minBound,maxBound);
       for(int si=0; si < shpN; si++)
 	{
