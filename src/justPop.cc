@@ -218,6 +218,7 @@ int main(int argc, char *argv[])
     case 'f':
       filename = std::string(optarg);
       std::cout << "output filename set: " << filename << std::endl;
+      break;
     case '?':
       break;
     default:
