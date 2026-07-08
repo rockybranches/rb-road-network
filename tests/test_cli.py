@@ -1,6 +1,7 @@
 """Tests for the rb-road-network CLI (rb_road_network/cli.py)."""
 import os
 import csv
+import shlex
 import subprocess
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -60,6 +61,7 @@ class TestBuildCommand:
         exe = _fake_exe(tmp_path)
         output = tmp_path / "out.txt"
         cmd = build_command(exe, output, 4.5, 33.7, -84.4, 75000, 0.009, 8, 0.5)
+        assert isinstance(cmd, list)
         assert str(exe) in cmd
         assert str(output) in cmd
         assert "--lat=33.7" in cmd
@@ -68,7 +70,8 @@ class TestBuildCommand:
         assert "--stride=0.009" in cmd
         assert "--nthreads=8" in cmd
         assert "--zoom=0.5" in cmd
-        assert "-t 4.5" in cmd
+        assert "-t" in cmd
+        assert "4.5" in cmd
 
 
 class TestSaveScript:
@@ -80,7 +83,7 @@ class TestSaveScript:
         assert script == output.with_suffix(".sh")
         assert script.exists()
         content = script.read_text()
-        assert cmd in content
+        assert shlex.join(cmd) in content
         assert "LD_LIBRARY_PATH" in content
 
     def test_script_is_executable(self, tmp_path):
@@ -171,7 +174,8 @@ class TestRunCommand:
         assert result.exit_code == 0, result.output
         mock_run.assert_called_once()
         call_kwargs = mock_run.call_args
-        assert "justPop.exe" in call_kwargs[0][0]
+        argv = call_kwargs[0][0]
+        assert any("justPop.exe" in str(arg) for arg in argv)
 
     def test_run_renders_map_when_json_present(self, tmp_path):
         _fake_exe(tmp_path)
