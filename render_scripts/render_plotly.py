@@ -30,6 +30,18 @@ def render(json_file, output=None):
             f"but only {len(features)} found"
         )
 
+    for i, label in [(0, "center point"), (1, "coordinate list")]:
+        feature = features[i]
+        if (
+            not isinstance(feature, dict)
+            or not isinstance(feature.get('geometry'), dict)
+            or 'coordinates' not in feature.get('geometry', {})
+        ):
+            raise ValueError(
+                f"{json_file}: features[{i}] ({label}) is missing expected "
+                f"'geometry.coordinates' structure"
+            )
+
     center_pt = dict(zip(['lon', 'lat'], features[0]['geometry']['coordinates']))
     coords = features[1]['geometry']['coordinates']
     df = pd.DataFrame(coords, columns=['lon', 'lat'])

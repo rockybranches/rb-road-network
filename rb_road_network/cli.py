@@ -470,7 +470,7 @@ def batch(csv_file, tons_per_person, radius, stride, nthreads, zoom, output_dir,
 
     for row_num, row in enumerate(rows, start=2):
         raw_site = row.get("site", "").strip()
-        site = "".join(c for c in raw_site if c not in ' /\'":\t')
+        site = "".join(c for c in raw_site if c not in set(' /\\\'":\t'))
         if not site:
             site = f"site_{row_num}"
 
