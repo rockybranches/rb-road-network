@@ -17,9 +17,21 @@ def render(json_file, output=None):
 
     with open(json_file, 'r') as resp:
         res = json.load(resp)
-    center_pt = dict(zip(['lon', 'lat'], res['features']
-                         [0]['geometry']['coordinates']))
-    coords = res['features'][1]['geometry']['coordinates']
+
+    if not isinstance(res, dict) or 'features' not in res:
+        raise ValueError(
+            f"{json_file}: expected a GeoJSON FeatureCollection with a 'features' key"
+        )
+    features = res['features']
+    if len(features) < 2:
+        raise ValueError(
+            f"{json_file}: 'features' array must contain at least 2 entries "
+            f"(index 0: center point, index 1: coordinate list), "
+            f"but only {len(features)} found"
+        )
+
+    center_pt = dict(zip(['lon', 'lat'], features[0]['geometry']['coordinates']))
+    coords = features[1]['geometry']['coordinates']
     df = pd.DataFrame(coords, columns=['lon', 'lat'])
     fig = px.scatter_mapbox(
         df,
