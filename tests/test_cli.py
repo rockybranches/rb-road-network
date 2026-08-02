@@ -308,6 +308,50 @@ class TestBatchCommand:
         # Sanitized: "NewYorkTest"
         assert (output_dir / "NewYorkTestResult.sh").exists()
 
+    def test_batch_empty_site_falls_back_to_row_number(self, tmp_path):
+        _fake_exe(tmp_path)
+        csv_path = self._make_csv(
+            tmp_path,
+            rows=[{"site": "   ", "lat": "40.7", "lon": "-74.0"}],
+        )
+        output_dir = tmp_path / "output"
+        runner = CliRunner()
+        result = runner.invoke(
+            cli,
+            [
+                "batch",
+                "--csv", str(csv_path),
+                "--no-exec",
+                "--rb-src", str(tmp_path),
+                "--output-dir", str(output_dir),
+            ],
+        )
+        assert result.exit_code == 0, result.output
+        assert (output_dir / "site_2Result.sh").exists()
+
+    @pytest.mark.parametrize(
+        "row",
+        [
+            {"site": "Savannah", "lat": "", "lon": "-81.095341"},
+            {"site": "Savannah", "lat": "abc", "lon": "-81.095341"},
+        ],
+    )
+    def test_batch_invalid_or_missing_lat_lon_raises_click_error(self, tmp_path, row):
+        _fake_exe(tmp_path)
+        csv_path = self._make_csv(tmp_path, rows=[row])
+        runner = CliRunner()
+        result = runner.invoke(
+            cli,
+            [
+                "batch",
+                "--csv", str(csv_path),
+                "--no-exec",
+                "--rb-src", str(tmp_path),
+            ],
+        )
+        assert result.exit_code != 0
+        assert "Row 2: invalid lat/lon values" in result.output
+
 
 # ---------------------------------------------------------------------------
 # Unit test: _render_map helper
