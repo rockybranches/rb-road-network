@@ -1,6 +1,7 @@
 """Tests for the rb-road-network CLI (rb_road_network/cli.py)."""
 import os
 import csv
+import shlex
 import subprocess
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -60,6 +61,7 @@ class TestBuildCommand:
         exe = _fake_exe(tmp_path)
         output = tmp_path / "out.txt"
         cmd = build_command(exe, output, 4.5, 33.7, -84.4, 75000, 0.009, 8, 0.5)
+        assert isinstance(cmd, list)
         assert str(exe) in cmd
         assert str(output) in cmd
         assert "--lat=33.7" in cmd
@@ -68,7 +70,8 @@ class TestBuildCommand:
         assert "--stride=0.009" in cmd
         assert "--nthreads=8" in cmd
         assert "--zoom=0.5" in cmd
-        assert "-t 4.5" in cmd
+        assert "-t" in cmd
+        assert "4.5" in cmd
 
 
 class TestSaveScript:
@@ -80,7 +83,7 @@ class TestSaveScript:
         assert script == output.with_suffix(".sh")
         assert script.exists()
         content = script.read_text()
-        assert cmd in content
+        assert shlex.join(cmd) in content
         assert "LD_LIBRARY_PATH" in content
 
     def test_script_is_executable(self, tmp_path):
@@ -171,7 +174,8 @@ class TestRunCommand:
         assert result.exit_code == 0, result.output
         mock_run.assert_called_once()
         call_kwargs = mock_run.call_args
-        assert "justPop.exe" in call_kwargs[0][0]
+        argv = call_kwargs[0][0]
+        assert any("justPop.exe" in str(arg) for arg in argv)
 
     def test_run_renders_map_when_json_present(self, tmp_path):
         _fake_exe(tmp_path)
@@ -303,6 +307,50 @@ class TestBatchCommand:
         assert result.exit_code == 0, result.output
         # Sanitized: "NewYorkTest"
         assert (output_dir / "NewYorkTestResult.sh").exists()
+
+    def test_batch_empty_site_falls_back_to_row_number(self, tmp_path):
+        _fake_exe(tmp_path)
+        csv_path = self._make_csv(
+            tmp_path,
+            rows=[{"site": "   ", "lat": "40.7", "lon": "-74.0"}],
+        )
+        output_dir = tmp_path / "output"
+        runner = CliRunner()
+        result = runner.invoke(
+            cli,
+            [
+                "batch",
+                "--csv", str(csv_path),
+                "--no-exec",
+                "--rb-src", str(tmp_path),
+                "--output-dir", str(output_dir),
+            ],
+        )
+        assert result.exit_code == 0, result.output
+        assert (output_dir / "site_2Result.sh").exists()
+
+    @pytest.mark.parametrize(
+        "row",
+        [
+            {"site": "Savannah", "lat": "", "lon": "-81.095341"},
+            {"site": "Savannah", "lat": "abc", "lon": "-81.095341"},
+        ],
+    )
+    def test_batch_invalid_or_missing_lat_lon_raises_click_error(self, tmp_path, row):
+        _fake_exe(tmp_path)
+        csv_path = self._make_csv(tmp_path, rows=[row])
+        runner = CliRunner()
+        result = runner.invoke(
+            cli,
+            [
+                "batch",
+                "--csv", str(csv_path),
+                "--no-exec",
+                "--rb-src", str(tmp_path),
+            ],
+        )
+        assert result.exit_code != 0
+        assert "Row 2: invalid lat/lon values" in result.output
 
 
 # ---------------------------------------------------------------------------
