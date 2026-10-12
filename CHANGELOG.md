@@ -6,6 +6,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## Project status
+
+This project remains pre-1.0. The latest documented release is **0.1.0** (2026-03-17);
+changes since then are listed under **[Unreleased]** and have not been assigned a release
+version. The current codebase includes the Python CLI for single-site and CSV batch
+population analysis, with optional Plotly map rendering. Running an analysis requires the
+`justPop.exe` executable and GIS data; `--no-exec` saves the command script without running
+the analysis.
+
 ## [Unreleased]
 
 ### Added
