@@ -26,7 +26,7 @@ determine_compiler() {
 }
 
 perform_compile() {
-    g++ $@
+    ${CXX:-/usr/bin/g++} $@
 }
 
 if [ "$arch" = "linux" ]
