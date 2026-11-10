@@ -26,7 +26,18 @@ determine_compiler() {
 }
 
 perform_compile() {
-    ${CXX:-/usr/bin/g++} $@
+    # Inside a Nix shell/build the g++ wrapper finds deps via NIX_CFLAGS_COMPILE.
+    # Outside one, a Nix g++ on PATH can't see /usr/include, so prefer the system g++.
+    local cxx=${CXX:-}
+    if [[ -z "$cxx" ]]; then
+	if [[ -z "${NIX_CFLAGS_COMPILE:-}" ]] && [[ -x /usr/bin/g++ ]]; then
+	    cxx=/usr/bin/g++
+	else
+	    cxx=g++
+	fi
+    fi
+    echo "CXX=$cxx"
+    $cxx $@
 }
 
 if [ "$arch" = "linux" ]
