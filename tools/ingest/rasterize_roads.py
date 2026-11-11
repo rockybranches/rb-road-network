@@ -27,11 +27,9 @@ import numpy as np
 import pyogrio
 import shapely
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "worker" / "src"))
-from rbnet.grid import CELL_M, FCLASS_BITS, TILE, X0, Y0  # noqa: E402
+from common import write_tile_sql
+from rbnet.grid import CELL_M, FCLASS_BITS, TILE, X0, Y0
 
-# D1 rejects statements over 100,000 bytes; stay well inside it.
-MAX_STATEMENT_BYTES = 90_000
 # Sample spacing along each road. Anything under one cell guarantees that
 # consecutive samples land in the same or a touching cell, so a road always
 # rasterizes to an 8-connected chain.
@@ -92,22 +90,6 @@ def to_tiles(keys, bits):
         yield int(tkey[s] % KEY_COLS), int(tkey[s] // KEY_COLS), tile
 
 
-def write_sql(path: Path, dataset: str, tiles):
-    """Write multi-row INSERTs, each under D1's statement size limit."""
-    head = "INSERT OR REPLACE INTO raster_tiles (dataset, layer, ty, tx, data) VALUES\n"
-    with path.open("w") as f:
-        rows, size = [], len(head)
-        for tx, ty, blob in tiles:
-            row = f"('{dataset}','roads',{ty},{tx},X'{blob.hex()}')"
-            if rows and size + len(row) + 2 > MAX_STATEMENT_BYTES:
-                f.write(head + ",\n".join(rows) + ";\n")
-                rows, size = [], len(head)
-            rows.append(row)
-            size += len(row) + 2
-        if rows:
-            f.write(head + ",\n".join(rows) + ";\n")
-
-
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("shapefiles", type=Path, nargs="+")
@@ -131,8 +113,7 @@ def main():
     for tx, ty, tile in to_tiles(keys, bits):
         compressed.append((tx, ty, zlib.compress(tile.tobytes(), 9)))
         raw_cells += tile.size
-    args.sql.parent.mkdir(parents=True, exist_ok=True)
-    write_sql(args.sql, args.dataset, compressed)
+    write_tile_sql(args.sql, args.dataset, "roads", compressed)
 
     sizes = np.array([len(b) for _, _, b in compressed])
     print(

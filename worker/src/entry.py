@@ -1,24 +1,46 @@
-"""Spike Worker: proves the D1-backed road grid and the search run in Pyodide.
+"""Worker entrypoint: road-distance market area analysis backed by D1.
 
 Routes
-  GET /            D1 connectivity check (tile count per dataset)
-  GET /bench       search on a synthetic grid: ?n=600&density=0.35&radius_m=75000
-  GET /reach       search on real tiles from D1: ?lat=&lon=&radius_m=&dataset=
+  GET /                    status: which datasets are loaded
+  GET /api/analysis        JSON report
+  GET /api/analysis.tex    the same report as the legacy LaTeX table
+
+Query parameters for both analysis routes
+  lat, lon           start point in decimal degrees (required)
+  radius_m           road-distance budget in metres (default 75000)
+  tons_per_person    default 4.5
+  min_km2            ignore counties with less reachable area than this
+                     (default 0: any reachable cell counts, as before)
 """
 
 import json
-import math
-import random
 import time
 import zlib
 from urllib.parse import parse_qs, urlparse
 
 from workers import Response, WorkerEntrypoint
 
-from rbnet import grid as g
-from rbnet.reach import UNITS_PER_CELL, UNREACHED, build_mosaic, reach, snap_to_road
+from rbnet.analysis import CELL_KM2, AnalysisError, analyze, plan_window
+from rbnet.report import DEFAULT_TONS_PER_PERSON, REPORT_YEARS, build_report, to_latex
 
-SNAP_CELLS = 8  # how far (in cells) a start point may be from the nearest road
+DEFAULT_RADIUS_M = 75_000.0
+
+TILES_SQL = (
+    "SELECT layer, tx, ty, hex(data) AS h FROM raster_tiles "
+    "WHERE ((dataset = ?1 AND layer = 'roads') OR (dataset = ?2 AND layer = 'counties')) "
+    "AND ty BETWEEN ?3 AND ?4 AND tx BETWEEN ?5 AND ?6"
+)
+# One bound JSON array instead of one parameter per id: D1 allows only 100
+# bound parameters and a wide search can reach more counties than that.
+COUNTIES_SQL = (
+    "SELECT geoid, name, stusps FROM counties "
+    "WHERE geoid IN (SELECT value FROM json_each(?1))"
+)
+POPULATION_SQL = (
+    "SELECT geoid, year, population FROM county_population "
+    "WHERE geoid IN (SELECT value FROM json_each(?1)) "
+    "AND year IN (SELECT value FROM json_each(?2))"
+)
 
 
 def _json(obj, status=200):
@@ -27,8 +49,15 @@ def _json(obj, status=200):
     )
 
 
-def _ms(t0):
-    return round((time.perf_counter() - t0) * 1000, 1)
+def _number(q, name, default=None):
+    if name not in q:
+        if default is None:
+            raise AnalysisError(f"missing required parameter: {name}")
+        return default
+    try:
+        return float(q[name])
+    except ValueError:
+        raise AnalysisError(f"{name} must be a number") from None
 
 
 class Default(WorkerEntrypoint):
@@ -38,144 +67,138 @@ class Default(WorkerEntrypoint):
         try:
             if url.path == "/":
                 return await self.status()
-            if url.path == "/bench":
-                return self.bench(q)
-            if url.path == "/reach":
-                return await self.reach(q)
-        except (KeyError, ValueError) as exc:
+            if url.path == "/api/analysis":
+                return _json(await self.analysis(q))
+            if url.path == "/api/analysis.tex":
+                result = await self.analysis(q)
+                return Response(
+                    to_latex(result["report"]),
+                    headers={"content-type": "text/plain; charset=utf-8"},
+                )
+        except AnalysisError as exc:
             return _json({"error": str(exc)}, 400)
         return _json({"error": "not found"}, 404)
 
     async def status(self):
-        res = await self.env.DB.prepare(
-            "SELECT dataset, layer, count(*) AS tiles, sum(length(data)) AS bytes "
-            "FROM raster_tiles GROUP BY dataset, layer"
+        tiles = await self.env.DB.prepare(
+            "SELECT dataset, layer, count(*) AS tiles FROM raster_tiles "
+            "GROUP BY dataset, layer"
         ).all()
-        rows = [
-            {"dataset": r.dataset, "layer": r.layer, "tiles": r.tiles, "bytes": r.bytes}
-            for r in res.results
-        ]
-        return _json({"ok": True, "raster_tiles": rows})
-
-    def bench(self, q):
-        n = int(q.get("n", 600))
-        density = float(q.get("density", 0.35))
-        radius_m = float(q.get("radius_m", 75000))
-        rng = random.Random(1)
-        width = n + 2
-        t0 = time.perf_counter()
-        cells = bytearray(width * width)
-        for r in range(1, n + 1):
-            base = r * width
-            for c in range(1, n + 1):
-                if rng.random() < density:
-                    cells[base + c] = 1
-        start = (n // 2 + 1) * width + n // 2 + 1
-        cells[start] = 1
-        build_ms = _ms(t0)
-        t0 = time.perf_counter()
-        dist = reach(cells, width, start, int(radius_m / g.CELL_M * UNITS_PER_CELL))
-        search_ms = _ms(t0)
-        reached = sum(1 for d in dist if d != UNREACHED)
+        counts = await self.env.DB.prepare(
+            "SELECT (SELECT count(*) FROM counties) AS counties, "
+            "(SELECT count(DISTINCT geoid) FROM county_population) AS with_population"
+        ).first()
         return _json(
             {
-                "n": n,
-                "density": density,
-                "road_cells": sum(cells),
-                "reached": reached,
-                "build_ms": build_ms,
-                "search_ms": search_ms,
+                "ok": True,
+                "active": {
+                    "roads": self.env.ROADS_DATASET,
+                    "counties": self.env.COUNTIES_DATASET,
+                },
+                "raster_tiles": [
+                    {"dataset": r.dataset, "layer": r.layer, "tiles": r.tiles}
+                    for r in tiles.results
+                ],
+                "counties": counts.counties,
+                "counties_with_population": counts.with_population,
             }
         )
 
-    async def reach(self, q):
-        lat, lon = float(q["lat"]), float(q["lon"])
-        radius_m = float(q.get("radius_m", 75000))
-        dataset = q.get("dataset", "spike")
-
-        x, y = g.lonlat_to_xy(lon, lat)
-        col, row = g.xy_to_cell(x, y)
-        half = math.ceil(radius_m / g.CELL_M) + 1
-        tx0, ty0 = g.cell_to_tile(col - half, row - half)
-        tx1, ty1 = g.cell_to_tile(col + half, row + half)
+    async def analysis(self, q):
+        lat = _number(q, "lat")
+        lon = _number(q, "lon")
+        radius_m = _number(q, "radius_m", DEFAULT_RADIUS_M)
+        tons_per_person = _number(q, "tons_per_person", DEFAULT_TONS_PER_PERSON)
+        min_km2 = _number(q, "min_km2", 0.0)
+        window = plan_window(lat, lon, radius_m)
+        db = self.env.DB
 
         t0 = time.perf_counter()
         res = (
-            await self.env.DB.prepare(
-                "SELECT tx, ty, hex(data) AS h FROM raster_tiles "
-                "WHERE dataset = ?1 AND layer = 'roads' "
-                "AND ty BETWEEN ?2 AND ?3 AND tx BETWEEN ?4 AND ?5"
+            await db.prepare(TILES_SQL)
+            .bind(
+                self.env.ROADS_DATASET,
+                self.env.COUNTIES_DATASET,
+                window.ty0,
+                window.ty1,
+                window.tx0,
+                window.tx1,
             )
-            .bind(dataset, ty0, ty1, tx0, tx1)
             .all()
         )
-        tiles = {
-            (int(r.tx), int(r.ty)): zlib.decompress(bytes.fromhex(r.h))
-            for r in res.results
+        tiles = {"roads": {}, "counties": {}}
+        for r in res.results:
+            tiles[r.layer][(int(r.tx), int(r.ty))] = zlib.decompress(
+                bytes.fromhex(r.h)
+            )
+        t1 = time.perf_counter()
+
+        result = analyze(window, radius_m, tiles["roads"], tiles["counties"])
+        t2 = time.perf_counter()
+
+        kept = {
+            geoid: cells
+            for geoid, cells in result.county_cells.items()
+            if cells * CELL_KM2 >= min_km2
         }
-        fetch_ms = _ms(t0)
-        if not tiles:
-            return _json({"error": "no road data for this area"}, 404)
-
-        t0 = time.perf_counter()
-        cells, width, height = build_mosaic(
-            tiles, tx0, ty0, tx1 - tx0 + 1, ty1 - ty0 + 1, g.TILE
+        ids = json.dumps(sorted(kept))
+        county_rows = await db.prepare(COUNTIES_SQL).bind(ids).all()
+        pop_rows = (
+            await db.prepare(POPULATION_SQL)
+            .bind(ids, json.dumps(list(REPORT_YEARS)))
+            .all()
         )
-        origin = (row - ty0 * g.TILE + 1) * width + (col - tx0 * g.TILE + 1)
-        start = snap_to_road(cells, width, height, origin, SNAP_CELLS)
-        assemble_ms = _ms(t0)
-        if start < 0:
-            return _json({"error": "no road near the start point"}, 404)
+        population = {}
+        for r in pop_rows.results:
+            population.setdefault(int(r.geoid), {})[int(r.year)] = int(r.population)
+        counties = [
+            {
+                "geoid": int(r.geoid),
+                "name": r.name,
+                "state": r.stusps,
+                "reached_km2": round(kept[int(r.geoid)] * CELL_KM2, 2),
+                "population": population.get(int(r.geoid)),
+            }
+            for r in county_rows.results
+        ]
+        t3 = time.perf_counter()
 
-        t0 = time.perf_counter()
-        dist = reach(cells, width, start, int(radius_m / g.CELL_M * UNITS_PER_CELL))
-        search_ms = _ms(t0)
-
-        t0 = time.perf_counter()
-        reached = 0
-        cmin = rmin = 1 << 30
-        cmax = rmax = -1
-        for i, d in enumerate(dist):
-            if d != UNREACHED:
-                reached += 1
-                r, c = divmod(i, width)
-                if c < cmin:
-                    cmin = c
-                if c > cmax:
-                    cmax = c
-                if r < rmin:
-                    rmin = r
-                if r > rmax:
-                    rmax = r
-
-        def lonlat(c, r):
-            return g.xy_to_lonlat(
-                *g.cell_center_xy(c - 1 + tx0 * g.TILE, r - 1 + ty0 * g.TILE)
+        warnings = []
+        if result.uncovered_tiles:
+            warnings.append(
+                "Road data is not loaded for part of the search area "
+                f"({result.uncovered_tiles} land tiles within the radius), "
+                "so the reachable area is cut off there."
             )
 
-        west, south = lonlat(cmin, rmin)
-        east, north = lonlat(cmax, rmax)
-        summarize_ms = _ms(t0)
-        return _json(
-            {
-                "start": {"lat": lat, "lon": lon, "snapped_cells": start != origin},
+        return {
+            "request": {
+                "lat": lat,
+                "lon": lon,
                 "radius_m": radius_m,
-                "tiles": len(tiles),
-                "grid": [width, height],
-                "road_cells": sum(1 for v in cells if v),
-                "reached_cells": reached,
-                "reached_km2": round(reached * (g.CELL_M / 1000) ** 2, 1),
-                "bbox_approx": [
-                    round(west, 4),
-                    round(south, 4),
-                    round(east, 4),
-                    round(north, 4),
-                ],
-                "ms": {
-                    "d1_fetch_decode": fetch_ms,
-                    "assemble": assemble_ms,
-                    "search": search_ms,
-                    "summarize": summarize_ms,
-                },
-            }
-        )
+                "tons_per_person": tons_per_person,
+                "min_km2": min_km2,
+            },
+            "datasets": {
+                "roads": self.env.ROADS_DATASET,
+                "counties": self.env.COUNTIES_DATASET,
+            },
+            "start": {
+                "lat": round(result.start_lat, 5),
+                "lon": round(result.start_lon, 5),
+                "moved_to_nearest_road": result.snapped,
+            },
+            "reachable": {
+                "km2": round(result.reached_km2, 1),
+                "bbox": [round(v, 4) for v in result.bbox],
+                "counties_reached": len(result.county_cells),
+                "counties_below_min_km2": len(result.county_cells) - len(kept),
+            },
+            "warnings": warnings,
+            "report": build_report(counties, tons_per_person),
+            "timing_ms": {
+                "load_tiles": round((t1 - t0) * 1000, 1),
+                "search": round((t2 - t1) * 1000, 1),
+                "counties": round((t3 - t2) * 1000, 1),
+            },
+        }

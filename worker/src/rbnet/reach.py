@@ -6,6 +6,7 @@ stops at a distance budget. Pure standard library so it runs unchanged in the
 Python Worker and under ordinary CPython tests.
 """
 
+import sys
 from array import array
 
 # Step costs in integer units of one fifth of a cell (50 m at 250 m cells):
@@ -16,17 +17,27 @@ DIAG = 7
 UNREACHED = 0xFFFF
 
 
-def build_mosaic(tiles, tx0, ty0, ntx, nty, tile):
+def build_mosaic(tiles, tx0, ty0, ntx, nty, tile, typecode="B"):
     """Stitch tiles into one row-major grid with a one-cell empty border.
 
-    `tiles` maps (tx, ty) -> bytes of length tile*tile (row 0 = south).
-    Returns (grid, width, height). The border means the search never has to
-    bounds-check a neighbour.
+    `tiles` maps (tx, ty) -> the tile's raw cell bytes (row 0 = south), one
+    byte per cell for typecode "B" or little-endian uint16 for "H". Missing
+    tiles are left as zeros. Returns (grid, width, height). The border means
+    the search never has to bounds-check a neighbour.
     """
     width = ntx * tile + 2
     height = nty * tile + 2
-    grid = bytearray(width * height)
+    if typecode == "B":
+        grid = bytearray(width * height)
+    else:
+        grid = array(typecode, bytes(width * height * array(typecode).itemsize))
     for (tx, ty), data in tiles.items():
+        if typecode != "B":
+            cells = array(typecode)
+            cells.frombytes(data)
+            if sys.byteorder == "big":
+                cells.byteswap()
+            data = cells
         col0 = 1 + (tx - tx0) * tile
         row0 = 1 + (ty - ty0) * tile
         for r in range(tile):
