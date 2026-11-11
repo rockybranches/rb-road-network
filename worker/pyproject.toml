@@ -1,0 +1,17 @@
+[project]
+name = "rb-road-network-worker"
+version = "0.0.0"
+description = "Cloudflare Python Worker for road-distance market area analysis"
+requires-python = ">=3.13"
+# Runtime dependencies are bundled into the Worker and must run in Pyodide.
+# Keep this list empty unless a package is proven to work there.
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "workers-py",
+    "workers-runtime-sdk",
+    # pywrangler shells out to uv and needs a newer one than many systems ship.
+    "uv>=0.13.4",
+    "pytest>=8.0.0",
+]

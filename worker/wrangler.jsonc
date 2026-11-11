@@ -1,0 +1,20 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "rb-road-network",
+  "main": "src/entry.py",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["python_workers"],
+  "observability": { "enabled": true },
+  // The search is CPU-bound; the 10 ms free-plan limit cannot run it.
+  "limits": { "cpu_ms": 60000 },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "rb-road-network",
+      // Placeholder: local dev ignores it. Replace with the real id from
+      // `pywrangler d1 create rb-road-network` before the first deploy.
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ]
+}
