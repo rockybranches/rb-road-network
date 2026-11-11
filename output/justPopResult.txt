@@ -20,22 +20,24 @@ Haralson & GA & 30062 & 33270 & 36779 & 40666 & 44436\\
 Heard & GA & 11898 & 13171 & 14407 & 15679 & 17033\\ 
 Henry & GA & 206987 & 247235 & 293903 & 347964 & 407649\\ 
 Jasper & GA & 14731 & 17344 & 20237 & 23572 & 27065\\ 
+Meriwether & GA & 23398 & 25235 & 27039 & 28896 & 30713\\ 
 Newton & GA & 107048 & 129789 & 157414 & 191000 & 227537\\ 
 Paulding & GA & 27635 & 29962 & 32514 & 35299 & 37974\\ 
+Pike & GA & 18620 & 21409 & 24535 & 28147 & 31630\\ 
 Polk & GA & 43228 & 46462 & 49787 & 53360 & 57178\\ 
 Rockdale & GA & 87153 & 97728 & 109019 & 121159 & 134287\\ 
 Spalding & GA & 66203 & 72950 & 80296 & 88300 & 96851\\ 
 Walton & GA & 91068 & 103882 & 118742 & 135756 & 153053\\ 
 \\ 
 \hline\hline
-    Totals = &  & 4897413 & 5455816 & 6093639 & 6810515 & 7549677\newline
+    Totals = &  & 4939431 & 5502460 & 6145213 & 6867558 & 7612020\newline
 \end{tabular} \\ 
 \begin{tabular}{l|l}
 \hline\hline
 \newline
- Population increase (2015 to 2030) & 2093861 \\ 
- Percent population increase & 38.4 \\ 
- Tons needed by market (2015) & 24551172.000  (4.500 tons/person) \\ 
- Tons needed by market (2030) & 33973548.000  (4.500 tons/person) \\ 
- Increase in tons needed (2015 to 2030) & 9422374.000 \\ 
+ Population increase (2015 to 2030) & 2109560 \\ 
+ Percent population increase & 38.3 \\ 
+ Tons needed by market (2015) & 24761070.000  (4.500 tons/person) \\ 
+ Tons needed by market (2030) & 34254088.000  (4.500 tons/person) \\ 
+ Increase in tons needed (2015 to 2030) & 9493020.000 \\ 
 \end{tabular}
