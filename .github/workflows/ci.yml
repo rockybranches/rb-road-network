@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  worker:
+    name: Worker and ingest tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: worker
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked
+      # test_golden.py is skipped here: it needs the local D1 database,
+      # which is built from data that is not in the repository.
+      - run: uv run pytest tests ../tools/ingest/tests
+      - name: Check the map page script parses
+        run: node --check public/app.js
+      - name: Check the Worker bundles
+        run: uv run pywrangler deploy --dry-run
+
+  cli:
+    name: Command-line client tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked --extra dev
+      - run: uv run pytest

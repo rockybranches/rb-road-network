@@ -1,31 +1,37 @@
 [project]
 name = "rb-road-network"
-version = "0.1.0"
-description = "Rocky Branches Road Network Toolkit — GIS toolkit for road-distance market area analysis and demographic reporting"
+version = "0.2.0"
+description = "Rocky Branches Road Network Toolkit — road-distance market area analysis and demographic reporting"
 readme = "README.md"
 requires-python = ">=3.12"
+# The command-line client only talks to the Worker over HTTP.
 dependencies = [
-    "aria2p>=0.12.1",
     "click>=8.3.1",
+]
+
+[project.optional-dependencies]
+# tools/ingest: builds the SQL that is loaded into D1.
+ingest = [
+    "numpy>=2.4.0",
+    "pyogrio>=0.12.1",
+    "shapely>=2.1.2",
+]
+# The data download and conversion helpers under scripts/.
+scripts = [
+    "aria2p>=0.12.1",
     "gdal<3.12.1",
     "geopandas>=1.1.2",
     "geopy>=2.4.1",
     "ipython>=9.8.0",
     "jupyter>=1.1.1",
-    "kaleido>=1.5.0",
     "matplotlib>=3.10.8",
-    "numpy>=2.4.0",
     "openpyxl>=3.1.5",
     "pandas>=2.3.3",
-    "pip>=26.0.1",
-    "plotly>=6.5.0",
     "pyproj>=3.7.2",
     "python-dotenv>=1.2.1",
     "requests>=2.32.5",
     "scipy>=1.16.3",
 ]
-
-[project.optional-dependencies]
 dev = [
     "pytest>=8.0.0",
 ]
@@ -33,12 +39,12 @@ dev = [
 [project.scripts]
 rb-road-network = "rb_road_network.cli:cli"
 
-[tool.setuptools]
-include-package-data = true
-packages = [
-    "rb_road_network",
-]
+[tool.hatch.build.targets.wheel]
+packages = ["rb_road_network"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
 
 [build-system]
-requires = ["hatchling", "wheel", "setuptools"]
+requires = ["hatchling"]
 build-backend = "hatchling.build"
