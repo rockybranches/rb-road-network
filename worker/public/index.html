@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Market area by road distance</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <link rel="stylesheet" href="/app.css">
+</head>
+<body>
+  <aside id="side">
+    <header>
+      <h1>Market area by road distance</h1>
+      <p id="datasets" class="muted"></p>
+    </header>
+
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-tab="analyze" aria-selected="true">Analyze</button>
+      <button role="tab" data-tab="saved" aria-selected="false">Saved</button>
+      <button role="tab" data-tab="batches" aria-selected="false">Batches</button>
+    </nav>
+
+    <section id="tab-analyze" role="tabpanel">
+      <form id="analysis-form">
+        <label>Name <span class="muted">(optional)</span>
+          <input name="label" maxlength="120" autocomplete="off">
+        </label>
+        <div class="row">
+          <label>Latitude
+            <input name="lat" inputmode="decimal" required placeholder="33.7320">
+          </label>
+          <label>Longitude
+            <input name="lon" inputmode="decimal" required placeholder="-84.4166">
+          </label>
+        </div>
+        <p class="hint">Or click the map to set the start point.</p>
+        <div class="row">
+          <label>Road distance (km)
+            <input name="radius_km" inputmode="decimal" required value="75">
+          </label>
+          <label>Tons per person
+            <input name="tons_per_person" inputmode="decimal" required value="4.5">
+          </label>
+        </div>
+        <details>
+          <summary>More options</summary>
+          <label>Leave out counties with less reachable area than (km²)
+            <input name="min_km2" inputmode="decimal" value="0">
+          </label>
+        </details>
+        <button type="submit" class="primary">Run analysis</button>
+        <p id="form-error" class="error" role="alert" hidden></p>
+      </form>
+
+      <div id="result" hidden>
+        <h2 id="result-title"></h2>
+        <p id="result-meta" class="muted"></p>
+        <ul id="result-warnings" class="warnings"></ul>
+        <dl id="result-stats" class="stats"></dl>
+        <div class="actions">
+          <a id="dl-tex" class="button" download>LaTeX table</a>
+          <a id="dl-geojson" class="button" download>Area GeoJSON</a>
+          <button id="copy-link" type="button">Copy link</button>
+          <button id="delete-analysis" type="button" class="danger">Delete</button>
+        </div>
+        <div class="table-wrap">
+          <table id="result-table"></table>
+        </div>
+        <p id="result-missing" class="muted"></p>
+      </div>
+    </section>
+
+    <section id="tab-saved" role="tabpanel" hidden>
+      <p class="hint">Every analysis run from this page is saved. Select one to show it.</p>
+      <ul id="saved-list" class="list"></ul>
+    </section>
+
+    <section id="tab-batches" role="tabpanel" hidden>
+      <div id="batch-index">
+        <form id="batch-form">
+          <label>Sites CSV <span class="muted">(columns: site, lat, lon)</span>
+            <input name="file" type="file" accept=".csv,text/csv" required>
+          </label>
+          <label>Batch name <span class="muted">(optional)</span>
+            <input name="label" maxlength="120" autocomplete="off">
+          </label>
+          <div class="row">
+            <label>Road distance (km)
+              <input name="radius_km" inputmode="decimal" required value="75">
+            </label>
+            <label>Tons per person
+              <input name="tons_per_person" inputmode="decimal" required value="4.5">
+            </label>
+          </div>
+          <button type="submit" class="primary">Create batch and run</button>
+          <p id="batch-error" class="error" role="alert" hidden></p>
+        </form>
+        <h2>Batches</h2>
+        <ul id="batch-list" class="list"></ul>
+      </div>
+
+      <div id="batch-view" hidden>
+        <button id="batch-back" type="button" class="link">← All batches</button>
+        <h2 id="batch-title"></h2>
+        <p id="batch-progress" class="muted"></p>
+        <div class="actions">
+          <button id="batch-run" type="button" class="primary"></button>
+          <a id="batch-csv" class="button" download>Summary CSV</a>
+          <button id="batch-delete" type="button" class="danger">Delete batch</button>
+        </div>
+        <p class="hint">Keep this page open while a batch runs. Finished sites are
+          saved as they complete, so a batch can be stopped and resumed.</p>
+        <div class="table-wrap">
+          <table id="batch-table"></table>
+        </div>
+      </div>
+    </section>
+  </aside>
+
+  <main id="map" aria-label="Map"></main>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="/app.js"></script>
+</body>
+</html>

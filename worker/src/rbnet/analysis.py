@@ -8,6 +8,7 @@ tiles named by `plan_window` from storage and hands the decompressed bytes to
 import math
 from dataclasses import dataclass, field
 
+from . import area as ar
 from . import grid as g
 from .reach import UNITS_PER_CELL, UNREACHED, build_mosaic, reach, snap_to_road
 
@@ -46,6 +47,7 @@ class Analysis:
     # means the road dataset stops short of the search area, so the result
     # is cut off there rather than genuinely unreachable.
     uncovered_tiles: int = 0
+    area: ar.Area = None  # coarse copy of the reached area, for maps
 
     @property
     def reached_km2(self):
@@ -88,7 +90,15 @@ def analyze(window, radius_m, road_tiles, county_tiles):
             f"no road within {SNAP_CELLS * g.CELL_M / 1000:.0f} km of the start point"
         )
 
-    dist = reach(roads, width, start, int(radius_m / g.CELL_M * UNITS_PER_CELL))
+    budget = int(radius_m / g.CELL_M * UNITS_PER_CELL)
+    dist = reach(roads, width, start, budget)
+
+    # Coarse blocks line up with tiles, and the mosaic has a one-cell border,
+    # so mosaic cell (c, r) falls in block ((c - 1) // FACTOR, (r - 1) // FACTOR).
+    factor = ar.FACTOR
+    scale = ar.LEVELS - 1
+    bstride = ntx * ar.BLOCKS_PER_TILE
+    blocks = bytearray(bstride * nty * ar.BLOCKS_PER_TILE)
 
     county_cells = {}
     reached = 0
@@ -101,6 +111,10 @@ def analyze(window, radius_m, road_tiles, county_tiles):
         geoid = counties[i]
         county_cells[geoid] = county_cells.get(geoid, 0) + 1
         r, c = divmod(i, width)
+        j = ((r - 1) // factor) * bstride + (c - 1) // factor
+        lvl = 1 + d * scale // budget
+        if blocks[j] == 0 or lvl < blocks[j]:
+            blocks[j] = lvl
         if c < cmin:
             cmin = c
         if c > cmax:
@@ -117,6 +131,16 @@ def analyze(window, radius_m, road_tiles, county_tiles):
     east, north = lonlat(cmax, rmax)
     start_lon, start_lat = lonlat(start % width, start // width)
     outside = county_cells.pop(0, 0)
+    area = ar.crop(
+        blocks,
+        bstride,
+        (cmin - 1) // factor,
+        (rmin - 1) // factor,
+        (cmax - 1) // factor,
+        (rmax - 1) // factor,
+        w.tx0 * ar.BLOCKS_PER_TILE,
+        w.ty0 * ar.BLOCKS_PER_TILE,
+    )
 
     radius_cells = radius_m / g.CELL_M
     uncovered = 0
@@ -138,4 +162,5 @@ def analyze(window, radius_m, road_tiles, county_tiles):
         county_cells=county_cells,
         outside_cells=outside,
         uncovered_tiles=uncovered,
+        area=area,
     )

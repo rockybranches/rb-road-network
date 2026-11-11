@@ -5,6 +5,9 @@
   "compatibility_date": "2026-11-01",
   "compatibility_flags": ["python_workers"],
   "observability": { "enabled": true },
+  // The map page. Files here are served directly; every other path,
+  // including all of /api, goes to the Worker.
+  "assets": { "directory": "./public" },
   // The search is CPU-bound; the 10 ms free-plan limit cannot run it.
   "limits": { "cpu_ms": 60000 },
   // Which loaded dataset versions the Worker reads. New data is loaded under
