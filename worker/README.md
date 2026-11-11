@@ -37,11 +37,13 @@ sites from a CSV.
 
 ## Build the data
 
-The ingest tools need geopandas, so they run with the repo root's `.venv`.
-Output goes to `build/d1/`, which is git-ignored.
+The ingest tools need numpy, pyogrio and shapely, which are the `ingest`
+extra of the repo root project. Output goes to `build/d1/`, which is
+git-ignored.
 
 ```bash
 cd ..   # repo root
+uv sync --extra ingest
 PY=.venv/bin/python
 
 # Roads: pass every state extract for one dataset in a single run.
@@ -122,11 +124,67 @@ uv run pytest tests ../tools/ingest/tests
 `tests/test_golden.py` compares against saved legacy results using the local
 D1 database, and is skipped until that database has been built.
 
+## Command-line client
+
+`rb-road-network` in the repo root sends the same requests as the map page
+and saves the report files; see the [root README](../README.md).
+
+## Continuous integration
+
+`.github/workflows/ci.yml` runs these tests, the command-line client's tests,
+a syntax check of the map page script and a dry-run bundle of the Worker on
+every push and pull request. It does not deploy.
+
 ## Deploying
 
-Nothing here has been deployed. Deploying needs a Workers Paid plan, a real
-D1 database id in `wrangler.jsonc`, and the same `d1` commands with `--remote`.
+State on 2026-11-11:
 
-The API has no authentication of its own: anyone who can reach the Worker
-can run, read and delete analyses. Put Cloudflare Access in front of it
-before sharing the address.
+- **Database: done.** The D1 database `rb-road-network` exists (its id is in
+  `wrangler.jsonc`), has the schema, and holds the same data as the local
+  build: counties and population for the contiguous US, roads for AL, GA,
+  NC, SC and TN.
+- **Worker: not deployed.** The account is on the Workers Free plan, which
+  rejects the CPU limit in `wrangler.jsonc`. The free plan's 10 ms of CPU
+  per request cannot run an analysis, so removing the limit is not a fix.
+
+The API has no login of its own: anyone who can reach the Worker can run,
+read and delete analyses. The steps below keep it unreachable until
+Cloudflare Access is in front of it.
+
+1. Switch the account to Workers Paid (dashboard: Workers & Pages, Plans).
+2. Deploy. `wrangler.jsonc` has `workers_dev` and `preview_urls` set to
+   `false`, so this creates the Worker with no address:
+
+   ```bash
+   uv run pywrangler deploy
+   ```
+
+3. Protect it. In the dashboard open Workers & Pages, `rb-road-network`,
+   the Access tab, and select "Protect this Worker behind Access". Choose
+   "All traffic" and who may sign in. This needs Zero Trust enabled on the
+   account, and covers every address of the Worker, including the map page.
+4. Give it an address: set `"workers_dev": true` in `wrangler.jsonc` and
+   deploy again. The address is printed at the end.
+5. Check it: the address should ask you to sign in, then show the map page;
+   `/api/status` should list the datasets.
+
+For the command-line client, create a service token (Zero Trust, Access
+controls, Service credentials, Service Tokens) and add a policy to the
+Worker's Access application with the action "Service Auth" that includes
+that token. The client sends it from `RB_ACCESS_CLIENT_ID` and
+`RB_ACCESS_CLIENT_SECRET`.
+
+If Access is later switched off for this Worker, the API is open to anyone
+with the address; the Worker does not check the sign-in itself.
+
+### Updating a deployment
+
+```bash
+uv run pywrangler d1 migrations apply DB --remote                    # schema changes
+uv run pywrangler d1 execute DB --remote --file ../build/d1/roads.sql   # new data
+uv run pywrangler deploy                                              # code or map page
+```
+
+Load new data under a new dataset label and switch `ROADS_DATASET` or
+`COUNTIES_DATASET` in `wrangler.jsonc`, so a reload never changes what live
+requests read.

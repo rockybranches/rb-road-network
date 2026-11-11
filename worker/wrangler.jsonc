@@ -5,6 +5,11 @@
   "compatibility_date": "2026-11-01",
   "compatibility_flags": ["python_workers"],
   "observability": { "enabled": true },
+  // No public address yet. The API has no login of its own, so the
+  // workers.dev address stays off until Cloudflare Access protects this
+  // Worker (see "Deploying" in README.md). Preview addresses stay off.
+  "workers_dev": false,
+  "preview_urls": false,
   // The map page. Files here are served directly; every other path,
   // including all of /api, goes to the Worker.
   "assets": { "directory": "./public" },
@@ -20,9 +25,7 @@
     {
       "binding": "DB",
       "database_name": "rb-road-network",
-      // Placeholder: local dev ignores it. Replace with the real id from
-      // `pywrangler d1 create rb-road-network` before the first deploy.
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "fb2aeb0d-15fd-448a-b053-ecc3b4e2198a",
       "migrations_dir": "migrations"
     }
   ]
