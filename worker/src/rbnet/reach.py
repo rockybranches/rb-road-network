@@ -1,8 +1,11 @@
 """Road-distance reachability over a rasterized road grid.
 
-Deterministic replacement for the legacy random-walk pather: a shortest-path
-search across road cells, moving between the eight touching neighbours, that
-stops at a distance budget. Pure standard library so it runs unchanged in the
+Deterministic replacement for the legacy pather, which was stochastic: it
+traced many clock-seeded random walks over road cells and marked whatever
+they happened to visit within the budget. This is a shortest-path search
+across road cells, moving between the eight touching neighbours, that stops
+at a distance budget, so it returns every cell within the budget rather than
+a random sample of them. Pure standard library so it runs unchanged in the
 Python Worker and under ordinary CPython tests.
 """
 

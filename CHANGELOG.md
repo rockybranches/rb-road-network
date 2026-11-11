@@ -8,14 +8,41 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## Project status
 
-This project remains pre-1.0. The latest documented release is **0.1.0** (2026-03-17);
-changes since then are listed under **[Unreleased]** and have not been assigned a release
-version. The current codebase includes the Python CLI for single-site and CSV batch
-population analysis, with optional Plotly map rendering. Running an analysis requires the
-`justPop.exe` executable and GIS data; `--no-exec` saves the command script without running
-the analysis.
+This project remains pre-1.0. The analysis now runs in a Cloudflare Python
+Worker backed by D1 (`worker/`), with a map page and a command-line client.
+The C++ `justPop` program it replaces is preserved at the `legacy-cpp` tag.
+Everything below **[Unreleased]** describes that program.
 
 ## [Unreleased]
+
+### Added
+- **Cloudflare Python Worker** (`worker/`) — road-distance analysis over
+  raster tiles stored in D1, a population report with the legacy LaTeX
+  layout, stored analyses, batches from a sites CSV, and a map page.
+- **Ingest tools** (`tools/ingest/`) — rasterize road shapefiles and county
+  boundaries, load county population, and reconcile the population CSVs
+  against Census Bureau figures.
+- **CI** (`.github/workflows/ci.yml`) — Worker, ingest and client tests, plus
+  a dry-run bundle of the Worker, on every push and pull request.
+
+### Changed
+- **`rb-road-network` CLI is now a client of the Worker.** `run` and `batch`
+  send requests to the address in `--url` / `RB_API_URL` and save a LaTeX
+  table, the full result as JSON and the reachable area as GeoJSON. New:
+  `status`, `batch --resume`, and Cloudflare Access service-token support.
+- **Dependencies** — the package itself needs only `click`. The ingest
+  tools' and the `scripts/` helpers' dependencies moved to the `ingest` and
+  `scripts` extras.
+
+### Removed
+- **The C++ program and everything that only served it**: `src/`,
+  `include/`, the Makefile, CMake and `build.sh`, the Docker and Nix files,
+  the GTK interface files, shaders and `resources/font/`, the Plotly render
+  script, and the build, debug and run helpers under `scripts/`.
+- **CLI options** `--stride`, `--nthreads`, `--zoom`, `--no-exec`, `--yes`,
+  `--rb-src` and `--render/--no-render`, and the interactive prompts.
+
+## Unreleased changes to the C++ program (after 0.1.0)
 
 ### Added
 - **`rb-road-network batch` CLI subcommand** — reads a CSV file (columns: `site`, `lat`, `lon`)

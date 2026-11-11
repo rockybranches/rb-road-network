@@ -1,260 +1,122 @@
 # rb-road-network
 
-__Rocky Branches - Road Network Toolkit__
+**Rocky Branches Road Network Toolkit**: market area reports by road distance.
 
-## About
+Give it a start point and a distance by road. It finds the area that can be
+reached within that distance, lists the US counties the area touches, and
+reports their population from 2010 to 2030 with the tons of material that
+population implies.
 
-**rb-road-network** (Rocky Branches - Road Network Toolkit), a GIS toolkit for creating market area reports.
+The analysis runs in a Cloudflare Python Worker that reads its road, county
+and population data from a D1 database. There are two ways to use it:
 
-**Key features:**
-- **Road-distance market area analysis** - Calculate reachable areas based on road network distance from a given point
-- **US county demographics** - Population and demographic data by county
-- **Map generation** - Creates market area maps with visualization styles for QGIS
+- **The map page**, served by the Worker: click a start point, run, and see
+  the reachable area and the county table. It also runs batches from a CSV.
+- **The command-line client** in this directory, which sends the same
+  requests and saves the report files.
 
-**Tech stack:**
-- C++ executables (justPop, etc.) for core road network computation
-- Python scripts for data processing and rendering (Plotly)
-- Docker for containerized execution
-- GDAL/OGR, shapelib for GIS operations
-- QGIS style files for visualization
+## Layout
 
-**Typical workflow:**
-1. Provide a lat/lon coordinate and radius (in meters)
-##
-	
-2. The tool calculates which areas are reachable via road network
-3. _Produces:_
-   + LaTeX-formatted population estimate timetable (`./output/OUTPUT.txt`).
-   + GIS
-   
+| Path | What it is |
+|---|---|
+| `worker/` | The Worker: API, analysis engine, map page, D1 schema. See [worker/README.md](worker/README.md) for running, loading data and deploying. |
+| `rb_road_network/` | The command-line client. |
+| `tools/ingest/` | Local tools that turn road shapefiles, county boundaries and population CSVs into the SQL loaded into D1. |
+| `scripts/` | Older helpers for downloading and converting source data. |
+| `resources/` | QGIS styles, source lists and other reference files. |
+| `output/` | Results from the earlier C++ program, kept for comparison. |
 
-## Usage
+## Command-line client
 
-### Python Interactive CLI
-
-##
-	# If you haven't yet,
-	# ensure the `uv` environment is initialized.
-	
-	./scripts/uv-full-sync.sh
-	
-	. ./.venv/bin/activate
-	
-	
-	# run the CLI
-	rb-road-network run
-
-### Docker Compose
-
-##
-	docker compose run rb-roads
-
-
-## Usage - Docker
-
-(after setting environment variables, listed below)
-
-1. Build the docker image.
-
-`$ ./docker_build.sh`
-
-1. Run the interactive tool.
-
-`$ ./docker_run.sh`
-
-## Summary
-
-GIS toolkit for creating market area reports, including:
-
-- US county demographics
-- Road-distance market area maps
-
-## Compatibility
-
-_Tested on:_
-
-- Arch Linux
-- Debian 10
-- Ubuntu
-
----
-
-## Dependencies
-
-### Packages
-
-- _shapelib (1.5)_
-  - libshp-dev
-- libcairo-dev [optional]
-- libosmium-dev [optional]
-- libgtk+-3 [optional]
-- docker-desktop (for `docker` usage)
-  - [Install on Debian](https://docs.docker.com/desktop/install/debian/)
-
----
-
-## How to build
-
-### Setup
-
-#### Environment variables
-
-Use `direnv` to manage environment variables (`./.envrc` defines the following):
+Install it with [uv](https://docs.astral.sh/uv/) (plain `pip install .` also
+works):
 
 ```bash
-# absolute path of source/repo directory
-#  (also contains executables)
-export RB_SRC=$HOME/Git/rb-road-network
-export RB_PATH=$RB_SRC
-
-# path for resources
-export XDG_DATA_DIRS=$RB_PATH/share/
-
-# absolute path of data,
-# e.g. .SHP road map files
-export RB_DATA=$HOME/Documents/rb_data
+uv tool install .          # or: uv run rb-road-network ...
 ```
 
-#### Build
-
-### Linux
+Point it at the Worker with `--url` or `RB_API_URL`. Without either it uses
+`http://localhost:8787`, the local development server.
 
 ```bash
-src=justPop exe=justPop make arch=linux
+export RB_API_URL=https://rb-road-network.<your-subdomain>.workers.dev
+
+rb-road-network status
+rb-road-network run --lat 33.732 --lon -84.4166 --name Atlanta
+rb-road-network batch --csv batch_inputs.csv
 ```
 
-### Windows
+`run` prints the county table and saves three files, named after `--name`
+(or the analysis id) in `output/`:
+
+- `.tex`: the population table in LaTeX
+- `.json`: the full result
+- `.geojson`: the reachable area, in bands of road distance
+
+Options: `-r/--radius` in metres (default 75000), `-t/--tons-per-person`
+(default 4.5), `--min-km2` to leave out counties that are barely touched, and
+`-f/--output` to choose where the `.tex` file goes.
+
+`batch` takes a CSV with a header row `site, lat, lon`, runs every site, and
+writes the same three files per site plus `batch_<id>_summary.csv` with one
+line per site. Sites that cannot be analysed are reported and the command
+exits with status 1. An interrupted batch continues with
+`rb-road-network batch --resume <id>`; add `--retry-failed` to run the failed
+sites again.
+
+Every run is stored by the Worker, and each command prints a link that opens
+it on the map page.
+
+### If the Worker is behind Cloudflare Access
+
+Create a service token in Cloudflare Zero Trust, allow it in the Worker's
+Access policy (see [worker/README.md](worker/README.md#deploying)), and set:
 
 ```bash
-src=justPop exe=justPop make arch=win
+export RB_ACCESS_CLIENT_ID=<client id>
+export RB_ACCESS_CLIENT_SECRET=<client secret>
 ```
 
----
+### Changes from the earlier CLI
 
-## Examples
+The `--stride`, `--nthreads`, `--zoom`, `--no-exec`, `--yes`, `--rb-src` and
+`--render` options are gone: they configured the local C++ program. `--lat`
+and `--lon` are now required instead of prompted for. The PNG map is replaced
+by the map page and the `.geojson` file.
 
-### Make a poptable
+## Development
 
 ```bash
-# `--radius` should be given in meters!
-$ ./justPop.exe \
- -f ./output/justPopResult.txt \
- --lat=30.2 --lon=-83.0 \
- --radius=75000 \
- --stride=0.009 \
- --tons-per-person=4.5 \
- --nthreads=8 \
- --zoom=0.5
+# Command-line client tests
+uv run --extra dev pytest
+
+# Worker and ingest tests
+cd worker && uv run pytest tests ../tools/ingest/tests
 ```
 
-### Download new roads data (shapefiles)
+The ingest tools need `uv sync --extra ingest`. The helpers in `scripts/`
+need `--extra scripts`, which includes GDAL and so needs the system GDAL
+library. A plain `uv sync` removes both sets from `.venv`.
+
+## The earlier C++ program
+
+Until November 2026 the analysis was a C++ program (`justPop`) that read
+shapefiles from a local data directory. Its source, build files and Docker
+and Nix setup are no longer in the tree; the last commit that has them is
+tagged `legacy-cpp`:
 
 ```bash
-$ ./scripts/download_gis_osm_roads.sh
+git checkout legacy-cpp
 ```
 
-### Update county population data from Google Drive CSVs (Multi-step)
+The Worker does not reproduce its numbers exactly, for two reasons:
 
-#### (1) Download US county population data from Google Drive (latest)
-
-```bash
-$RB_SRC/scripts/downloadCountyPop/downloadCountyPop.sh
-
-```
-
-#### (2) Update local geo-ref data file (CSV -> DBF)
-
-*(2.1) Build*
-
-```bash
-$RB_SRC/scripts/build_scripts.sh
-```
-
-*(2.2) Update*
-
-_`$RB_DATA/county_pop/CSVs` -> `$RB_DATA/tl_2016_us_county_wgs84/tl_2016_us_county.dbf`_
-
-```bash
-$> $RB_SRC/scripts/build_scripts.sh
-$> $RB_SRC/scripts/bin/countyPop2DBF.exe
-```
-
-*Download $RB_DATA*
-
-```bash
-$> $RB_SRC/scripts/download_rb_data.sh
-$> $RB_SRC/scripts/downloadCountyPop.sh
-```
-
-*Docker*
-
-```bash
-$> $RB_SRC/docker_build.sh && $RB_SRC/docker_run.sh
-```
-
-*Interactive script*
-
-```bash
-$> $RB_SRC/scripts/roads_rb
-```
-
----
-
-## Troubleshooting
-
-### 'how to copy a file from a running docker container to local?'
-
-#### Quick example
-
-```bash
-
-# for running container 'rb-road-network-rb-roads-run-77c22bf4c6b1'
-$ docker cp rb-road-network-rb-roads-run-77c22bf4c6b1:/home/appuser/rb_app/SpanishCut.json ./
-
-```
-
-To copy a file from a running Docker container to your local filesystem, you can use
-the docker cp command. Here's a step-by-step guide to doing that:
-
-1. First, identify the container ID or name of the running container. You can list all
-   running containers with the command:
-
-`docker ps`
-
-1. Determine the full path of the file you want to copy from the container.
-2. Use the docker cp command to copy the file from the container to your local
-   machine. The format for the command is as follows:
-
-`docker cp <container_id_or_name>:<container_file_path> <local_target_path>`
-
-Here's an example use case:
-
-Let's say you have a container named my_container , and you want to copy a file
-/tmp/example.txt from the container to your local directory /home/user/ .
-
-You would run:
-
-`docker cp my_container:/tmp/example.txt /home/user/`
-
-After this command runs successfully, the file example.txt should be present on your
-local filesystem in /home/user/ .
-
-Please make sure you have appropriate permissions to access the targeted directory on
-your local filesystem, and take note that if a file with the same name already exists
-at the local path, it will be overwritten by default.
-
-### **Error:** `No data was available for the requested area`
-
-#### Did you make sure to use the correct sign for the **longitude**?
-
-**Recall:** West longitude should be given as negative (e.g., `81.0W` means `-81.0`)
-
-### **Error:** `"undefined reference" when using experimental filesystem...`
-
-#### Make sure to use gnu++17 (or later) `-std=gnu++2a` & link experimental fs
-
-```bash
-g++ -std=gnu++2a *.cpp -lstdc++fs
-```
-
-ref: <https://stackoverflow.com/questions/49249349/undefined-reference-when-using-experimental-filesystem/49250698#49250698>
+- **The old algorithm was stochastic.** It traced many random walks along
+  road cells from the start point, seeded from the clock, and marked every
+  cell that any walk visited within the distance budget. Two runs with the
+  same input could reach different cells, and so different counties. The
+  Worker instead computes the shortest road distance to every cell and keeps
+  all cells within the budget, so the same input always gives the same
+  answer.
+- **The old "radius" was applied as roughly twice the stated distance.**
+  The Worker applies the distance as given.
