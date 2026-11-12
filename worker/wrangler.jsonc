@@ -19,7 +19,7 @@
   // Which loaded dataset versions the Worker reads. New data is loaded under
   // a new label and switched here, so a reload never disturbs live queries.
   "vars": {
-    "ROADS_DATASET": "osm-2026-02",
+    "ROADS_DATASET": "osm-2026-11",
     "COUNTIES_DATASET": "tl-2016"
   },
   "d1_databases": [

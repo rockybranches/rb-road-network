@@ -45,23 +45,33 @@ git-ignored.
 cd ..   # repo root
 uv sync --extra ingest
 PY=.venv/bin/python
+COUNTIES="$RB_DATA"/tl_2016_us_county/tl_2016_us_county.shp
+ROADS="$RB_DATA"/gis_osm_roads_2026-11
+
+# Download the roads layer of every state extract from Geofabrik: 50
+# archives, about 7 GB fetched and 20 GB on disk. It reads only the roads
+# files out of each archive, and can be run again after an interruption.
+$PY tools/ingest/fetch_roads.py --out "$ROADS"
 
 # Roads: pass every state extract for one dataset in a single run.
-$PY tools/ingest/rasterize_roads.py \
-  "$RB_DATA"/gis_osm_roads_extra/*_geom/gis_osm_roads_free_1.shp \
-  --dataset osm-2026-02 --sql build/d1/roads.sql
+# --counties marks roadless tiles (open water, wilderness) in those states
+# as loaded, so the Worker does not warn that data is missing there.
+$PY tools/ingest/rasterize_roads.py "$ROADS"/*/gis_osm_roads_free_1.shp \
+  --counties "$COUNTIES" --dataset osm-2026-11 --sql build/d1/roads.sql
 
 # County boundaries and attributes (contiguous US).
-$PY tools/ingest/rasterize_counties.py \
-  "$RB_DATA"/tl_2016_us_county/tl_2016_us_county.shp \
+$PY tools/ingest/rasterize_counties.py "$COUNTIES" \
   --dataset tl-2016 --sql build/d1/counties.sql
 
 # Population. Prints which rows it corrected or could not place.
 $PY tools/ingest/load_population.py \
-  --counties "$RB_DATA"/tl_2016_us_county/tl_2016_us_county.shp \
-  --csv-dir "$RB_DATA"/county_pop \
+  --counties "$COUNTIES" --csv-dir "$RB_DATA"/county_pop \
   --source county-pop-reconciled-2026-11 --sql build/d1/population.sql
 ```
+
+The road extracts are the Geofabrik archives of 2026-11-10 and 2026-11-11;
+`sources.json` in the download directory lists the exact archive for each
+state. California comes as two extracts (`norcal`, `socal`).
 
 ### Population figures
 
@@ -141,8 +151,9 @@ State on 2026-11-11:
 
 - **Database: done.** The D1 database `rb-road-network` exists (its id is in
   `wrangler.jsonc`), has the schema, and holds the same data as the local
-  build: counties and population for the contiguous US, roads for AL, GA,
-  NC, SC and TN.
+  build: counties, population and roads (`osm-2026-11`) for the contiguous
+  US. The earlier roads dataset `osm-2026-02` (AL, GA, NC, SC and TN only)
+  is still in the database but no longer read.
 - **Worker: live** at <https://rb-road-network.rockybranches.workers.dev>,
   on Workers Paid, behind Cloudflare Access. Without a sign-in every path,
   including the map page and all of `/api`, redirects to the Access login.

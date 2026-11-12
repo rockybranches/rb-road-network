@@ -19,9 +19,14 @@ Everything below **[Unreleased]** describes that program.
 - **Cloudflare Python Worker** (`worker/`) — road-distance analysis over
   raster tiles stored in D1, a population report with the legacy LaTeX
   layout, stored analyses, batches from a sites CSV, and a map page.
-- **Ingest tools** (`tools/ingest/`) — rasterize road shapefiles and county
-  boundaries, load county population, and reconcile the population CSVs
-  against Census Bureau figures.
+- **Ingest tools** (`tools/ingest/`) — download the roads layer of every
+  state extract, rasterize road shapefiles and county boundaries, load
+  county population, and reconcile the population CSVs against Census
+  Bureau figures.
+- **Roads for the whole contiguous US** — dataset `osm-2026-11`, replacing
+  the five south-eastern states of `osm-2026-02`. Roadless tiles inside a
+  loaded state are stored as empty, so the "road data is not loaded" warning
+  no longer fires over open water.
 - **CI** (`.github/workflows/ci.yml`) — Worker, ingest and client tests, plus
   a dry-run bundle of the Worker, on every push and pull request.
 

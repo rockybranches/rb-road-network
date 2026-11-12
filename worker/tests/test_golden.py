@@ -1,6 +1,7 @@
 """Compare against the legacy tool's results using the real data in the local
 D1 database. Skipped when that database has not been built (see README)."""
 
+import re
 import sqlite3
 import zlib
 from pathlib import Path
@@ -9,8 +10,17 @@ import pytest
 
 from rbnet.analysis import analyze, plan_window
 
-STATE = Path(__file__).resolve().parents[1] / ".wrangler" / "state" / "v3" / "d1"
-ROADS, COUNTIES = "osm-2026-02", "tl-2016"
+WORKER = Path(__file__).resolve().parents[1]
+STATE = WORKER / ".wrangler" / "state" / "v3" / "d1"
+
+
+def _active(var):
+    """The dataset label the Worker is configured to read."""
+    text = (WORKER / "wrangler.jsonc").read_text()
+    return re.search(rf'"{var}":\s*"([^"]+)"', text).group(1)
+
+
+ROADS, COUNTIES = _active("ROADS_DATASET"), _active("COUNTIES_DATASET")
 
 
 @pytest.fixture(scope="module")
@@ -19,8 +29,8 @@ def db():
         con = sqlite3.connect(path)
         try:
             n = con.execute(
-                "SELECT count(*) FROM raster_tiles WHERE dataset IN (?, ?)",
-                (ROADS, COUNTIES),
+                "SELECT count(*) FROM raster_tiles WHERE dataset = ? AND layer = 'roads'",
+                (ROADS,),
             ).fetchone()[0]
         except sqlite3.OperationalError:
             n = 0
