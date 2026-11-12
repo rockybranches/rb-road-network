@@ -10,9 +10,15 @@ Neighbouring extracts share tiles along their borders, so every extract that
 belongs to one dataset must be passed in a single run: the tool merges them
 before writing, whereas loading them separately would overwrite border tiles.
 
+The Worker reads a missing road tile over a county as "road data is not
+loaded here" and warns about it. Open water and wilderness inside a loaded
+state have no roads either, so with `--counties` the tool also writes an
+empty tile for every roadless tile of each state it has roads for.
+
 Output is a SQL file that loads straight into D1:
 
-    rasterize_roads.py ga.shp al.shp --dataset osm-2026-02 --sql out/roads.sql
+    rasterize_roads.py ga.shp al.shp --counties tl_2016_us_county.shp \
+        --dataset osm-2026-02 --sql out/roads.sql
     wrangler d1 execute DB --local --file out/roads.sql
 """
 
@@ -36,6 +42,10 @@ from rbnet.grid import CELL_M, FCLASS_BITS, TILE, X0, Y0
 SAMPLE_M = CELL_M / 2.0
 CHUNK = 250_000
 KEY_COLS = 1 << 20  # packs (row, col) into one int64; far wider than CONUS
+# A state has road data when at least this share of its cells hold a road.
+# The emptiest loaded state is many times above it (0.17); a state that only
+# receives the roads crossing in from a neighbour's extract is far below.
+MIN_STATE_ROAD_SHARE = 0.01
 
 
 def rasterize(shp_path: Path):
@@ -90,9 +100,42 @@ def to_tiles(keys, bits):
         yield int(tkey[s] % KEY_COLS), int(tkey[s] // KEY_COLS), tile
 
 
+def roadless_covered_tiles(keys, county_grid, tx0, ty0):
+    """Find the roadless tiles of every state that has road data.
+
+    `county_grid` is the tile-aligned grid of county GEOIDs from
+    `rasterize_counties.rasterize`, whose south-west tile is (tx0, ty0).
+    Returns (tiles, shares): the (tx, ty) of each tile that touches a state
+    with road data but holds no road cell, and {state FIPS: share of the
+    state's cells that hold a road} for every state.
+    """
+    nty, ntx = county_grid.shape[0] // TILE, county_grid.shape[1] // TILE
+    row = keys // KEY_COLS - ty0 * TILE
+    col = keys % KEY_COLS - tx0 * TILE
+    inside = (row >= 0) & (row < county_grid.shape[0]) & (col >= 0) & (col < county_grid.shape[1])
+    row, col = row[inside], col[inside]
+
+    state = (county_grid // 1000).astype(np.uint8)  # GEOID = state * 1000 + county
+    cells = np.bincount(state.ravel(), minlength=100)
+    roads = np.bincount(state[row, col], minlength=100)
+    shares = {int(s): float(roads[s] / cells[s]) for s in np.flatnonzero(cells) if s}
+    has_data = np.zeros(len(cells), dtype=bool)
+    for s, share in shares.items():
+        has_data[s] = share >= MIN_STATE_ROAD_SHARE
+
+    covered = has_data[state].reshape(nty, TILE, ntx, TILE).any(axis=(1, 3))
+    covered[row // TILE, col // TILE] = False  # these tiles have roads
+    return [(tx0 + int(i), ty0 + int(j)) for j, i in zip(*np.nonzero(covered))], shares
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("shapefiles", type=Path, nargs="+")
+    ap.add_argument(
+        "--counties", type=Path,
+        help="county boundaries shapefile; adds an empty tile for every "
+        "roadless tile of each state that has roads",
+    )  # fmt: skip
     ap.add_argument("--dataset", required=True, help="dataset version label")
     ap.add_argument("--sql", type=Path, required=True, help="output SQL file")
     args = ap.parse_args()
@@ -113,9 +156,31 @@ def main():
     for tx, ty, tile in to_tiles(keys, bits):
         compressed.append((tx, ty, zlib.compress(tile.tobytes(), 9)))
         raw_cells += tile.size
+    sizes = np.array([len(b) for _, _, b in compressed])
+
+    coverage = {}
+    if args.counties:
+        import rasterize_counties
+
+        print(f"{args.counties}", file=sys.stderr)
+        grid, tx0, ty0 = rasterize_counties.rasterize(
+            rasterize_counties.read_counties(args.counties)
+        )
+        empty, shares = roadless_covered_tiles(keys, grid, tx0, ty0)
+        blank = zlib.compress(bytes(TILE * TILE), 9)
+        compressed.extend((tx, ty, blank) for tx, ty in empty)
+        loaded = {s: v for s, v in shares.items() if v >= MIN_STATE_ROAD_SHARE}
+        coverage = {
+            "states_with_roads": len(loaded),
+            "states_without_roads": sorted(set(shares) - set(loaded)),
+            "lowest_road_share": round(min(loaded.values()), 4) if loaded else None,
+            "highest_road_share_without": round(
+                max((v for s, v in shares.items() if s not in loaded), default=0.0), 4
+            ),
+            "roadless_tiles_added": len(empty),
+        }
     write_tile_sql(args.sql, args.dataset, "roads", compressed)
 
-    sizes = np.array([len(b) for _, _, b in compressed])
     print(
         json.dumps(
             {
@@ -124,6 +189,7 @@ def main():
                 "features_skipped_not_drivable": skipped,
                 "road_cells": int(len(keys)),
                 "tiles": len(compressed),
+                **coverage,
                 "occupied_fraction": round(len(keys) / raw_cells, 4),
                 "raw_bytes": raw_cells,
                 "compressed_bytes": int(sizes.sum()),

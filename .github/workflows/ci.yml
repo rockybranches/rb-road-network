@@ -36,5 +36,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
-      - run: uv sync --locked --extra dev
+      - run: uv sync --locked --extra dev --extra ingest
       - run: uv run pytest
+      # The Worker job above runs these without numpy, which skips the
+      # rasterizer tests; here they all run.
+      - name: Ingest tests with numpy
+        run: uv run pytest tools/ingest/tests
