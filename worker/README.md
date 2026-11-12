@@ -143,17 +143,18 @@ State on 2026-11-11:
   `wrangler.jsonc`), has the schema, and holds the same data as the local
   build: counties and population for the contiguous US, roads for AL, GA,
   NC, SC and TN.
-- **Worker: not deployed.** The account is on the Workers Free plan, which
-  rejects the CPU limit in `wrangler.jsonc`. The free plan's 10 ms of CPU
-  per request cannot run an analysis, so removing the limit is not a fix.
+- **Worker: live** at <https://rb-road-network.rockybranches.workers.dev>,
+  on Workers Paid, behind Cloudflare Access. Without a sign-in every path,
+  including the map page and all of `/api`, redirects to the Access login.
 
 The API has no login of its own: anyone who can reach the Worker can run,
-read and delete analyses. The steps below keep it unreachable until
-Cloudflare Access is in front of it.
+read and delete analyses. The steps below, all done for this deployment,
+keep it unreachable until Cloudflare Access is in front of it; follow them
+again for a new one.
 
 1. Switch the account to Workers Paid (dashboard: Workers & Pages, Plans).
-2. Deploy. `wrangler.jsonc` has `workers_dev` and `preview_urls` set to
-   `false`, so this creates the Worker with no address:
+2. Deploy with `workers_dev` and `preview_urls` set to `false` in
+   `wrangler.jsonc`, so the Worker is created with no address:
 
    ```bash
    uv run pywrangler deploy

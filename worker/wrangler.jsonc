@@ -5,10 +5,11 @@
   "compatibility_date": "2026-11-01",
   "compatibility_flags": ["python_workers"],
   "observability": { "enabled": true },
-  // No public address yet. The API has no login of its own, so the
-  // workers.dev address stays off until Cloudflare Access protects this
-  // Worker (see "Deploying" in README.md). Preview addresses stay off.
-  "workers_dev": false,
+  // The API has no login of its own. The workers.dev address is on only
+  // because Cloudflare Access protects this Worker (see "Deploying" in
+  // README.md); set this to false if Access is ever removed. Preview
+  // addresses stay off.
+  "workers_dev": true,
   "preview_urls": false,
   // The map page. Files here are served directly; every other path,
   // including all of /api, goes to the Worker.
