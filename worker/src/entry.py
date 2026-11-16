@@ -630,8 +630,12 @@ class Default(WorkerEntrypoint):
             aid, status="done", error=None, points=points, bytes=len(text)
         )
 
-    async def queue(self, batch):
-        """Queue consumer: build the detailed results named in `batch`."""
+    async def queue(self, batch, env=None, ctx=None):
+        """Queue consumer: build the detailed results named in `batch`.
+
+        The Workers runtime calls this as `queue(batch, env, ctx)`; `env` and
+        `ctx` are already on `self`, so they are accepted and ignored.
+        """
         for message in batch.messages:
             try:
                 aid = str(json.loads(message.body)["id"])
