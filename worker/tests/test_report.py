@@ -50,8 +50,9 @@ def test_latex_escapes_special_characters():
     assert "Lewis \\& Clark & MT & 1" in to_latex(report)
 
 
-def test_latex_matches_legacy_output(legacy_table):
-    """Feeding the legacy table's own numbers back in reproduces its text."""
+def test_latex_matches_legacy_output_except_row_endings(legacy_table):
+    """Feeding the legacy table's own numbers back in reproduces its text,
+    apart from three row endings that were changed on purpose."""
     rows = legacy_table("legacy_atlanta.tex")
     assert len(rows) == 27
     report = build_report(
@@ -61,11 +62,19 @@ def test_latex_matches_legacy_output(legacy_table):
     legacy = (FIXTURES / "legacy_atlanta.tex").read_text().splitlines()
     assert len(ours) == len(legacy)
     differing = [(a, b) for a, b in zip(ours, legacy) if a != b]
-    # The only difference is a rounding error in the legacy file: it computed
-    # 4.5 * 7612020 in 32-bit floats and printed 34254088 instead of 34254090.
     assert differing == [
+        # Deliberate formatting changes: these three rows now end in a
+        # LaTeX row break, and the two spacer rows have empty cells.
+        ("& & & & & &\\\\ ", "\\\\ "),
+        (
+            "    Totals = &  & 4939431 & 5502460 & 6145213 & 6867558 & 7612020\\\\",
+            "    Totals = &  & 4939431 & 5502460 & 6145213 & 6867558 & 7612020\\newline",
+        ),
+        ("& \\\\", "\\newline"),
+        # A rounding error in the legacy file: it computed 4.5 * 7612020 in
+        # 32-bit floats and printed 34254088 instead of 34254090.
         (
             " Tons needed by market (2030) & 34254090.000  (4.500 tons/person) \\\\ ",
             " Tons needed by market (2030) & 34254088.000  (4.500 tons/person) \\\\ ",
-        )
+        ),
     ]
