@@ -75,11 +75,11 @@ def to_latex(report):
         cells += [str(p) for p in row["population"]]
         out.append(" & ".join(cells) + "\\\\ \n")
     out += [
-        "\\\\ \n",
+        "& & & & & &\\\\ \n",
         "\\hline\\hline\n",
-        "    Totals = & " + "".join(f" & {t}" for t in report["totals"]) + "\\newline\n",
+        "    Totals = & " + "".join(f" & {t}" for t in report["totals"]) + "\\\\\n",
         "\\end{tabular} \\\\ \n",
-        "\\begin{tabular}{l|l}\n\\hline\\hline\n\\newline\n",
+        "\\begin{tabular}{l|l}\n\\hline\\hline\n& \\\\\n",
         f" Population increase ({base} to {target}) & "
         f"{report['population_increase']} \\\\ \n",
         " Percent population increase & "
