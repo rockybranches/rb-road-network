@@ -1,0 +1,39 @@
+name: Deploy
+
+# Deploys the Worker and the map page to Cloudflare. It runs only when
+# started by hand (Actions tab, "Deploy", "Run workflow") and only from main.
+# It does not apply database migrations or load data; see "Updating a
+# deployment" in worker/README.md for those.
+#
+# Needs the repository secret CLOUDFLARE_API_TOKEN: a Cloudflare API token
+# made from the "Edit Cloudflare Workers" template.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One deploy at a time; a second one waits rather than cancelling the first.
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy the Worker
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: worker
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked
+      - name: Run the tests before deploying
+        run: uv run pytest tests ../tools/ingest/tests
+      - name: Deploy
+        run: uv run pywrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

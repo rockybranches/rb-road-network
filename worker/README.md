@@ -186,7 +186,8 @@ and saves the report files; see the [root README](../README.md).
 
 `.github/workflows/ci.yml` runs these tests, the command-line client's tests,
 a syntax check of the map page script and a dry-run bundle of the Worker on
-every push and pull request. It does not deploy.
+every push and pull request. It does not deploy; `.github/workflows/deploy.yml`
+does, when started by hand (see "Updating a deployment").
 
 ## Deploying
 
@@ -257,6 +258,13 @@ uv run pywrangler d1 migrations apply DB --remote                    # schema ch
 uv run pywrangler d1 execute DB --remote --file ../build/d1/roads.sql   # new data
 uv run pywrangler deploy                                              # code or map page
 ```
+
+The last step, on its own, can also be run from GitHub without a local
+checkout: in the repository's Actions tab choose "Deploy", then "Run
+workflow" on `main`. It runs the tests and then `pywrangler deploy`; it does
+not apply migrations or load data. It needs the repository secret
+`CLOUDFLARE_API_TOKEN` (Settings, Secrets and variables, Actions), a
+Cloudflare API token made from the "Edit Cloudflare Workers" template.
 
 Load new data under a new dataset label and switch `ROADS_DATASET` or
 `COUNTIES_DATASET` in `wrangler.jsonc`, so a reload never changes what live
