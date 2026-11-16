@@ -53,8 +53,10 @@ const siteName = (request) =>
 // ---------------------------------------------------------------- map
 
 const map = L.map("map", { preferCanvas: true }).setView([33.75, -84.39], 8);
-L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+const tiles = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
   maxZoom: 19,
+  // Lets the tiles be copied into the downloadable PNG of the map.
+  crossOrigin: "",
   attribution:
     '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
 }).addTo(map);
@@ -74,13 +76,50 @@ const pin = L.circleMarker([0, 0], {
   fillOpacity: 1,
 });
 let legend = null;
+let areaBounds = null; // what "Zoom to area" shows; null when no area is drawn
 
 function setPin(lat, lon) {
   pin.setLatLng([lat, lon]).addTo(map).bringToFront();
 }
 
+// Name the start point on the map, a little up and to the right of its marker.
+function setPinLabel(text) {
+  pin.unbindTooltip();
+  if (!text) return;
+  pin.bindTooltip(text, {
+    permanent: true,
+    direction: "right",
+    offset: [8, -14],
+    className: "site-label",
+    interactive: false,
+  });
+}
+
+const zoomToArea = L.control({ position: "topleft" });
+zoomToArea.onAdd = () => {
+  const button = el(
+    "button",
+    { type: "button", className: "map-button", title: "Fit the map to the market area", hidden: true },
+    "Zoom to area",
+  );
+  // Without this a click would also land on the map and move the start point.
+  L.DomEvent.disableClickPropagation(button);
+  button.addEventListener("click", () => {
+    if (areaBounds) map.fitBounds(areaBounds, { padding: [20, 20] });
+  });
+  return button;
+};
+zoomToArea.addTo(map);
+
+function setAreaBounds(bounds) {
+  areaBounds = bounds && bounds.isValid() ? bounds : null;
+  zoomToArea.getContainer().hidden = !areaBounds;
+}
+
 function clearOverlay() {
   overlay.clearLayers();
+  setPinLabel("");
+  setAreaBounds(null);
   if (legend) {
     legend.remove();
     legend = null;
@@ -92,11 +131,13 @@ map.on("click", (event) => {
   form.elements.lat.value = event.latlng.lat.toFixed(5);
   form.elements.lon.value = event.latlng.lng.toFixed(5);
   setPin(event.latlng.lat, event.latlng.lng);
+  // The marker now shows a new start point, not the analysis on screen.
+  setPinLabel("");
   selectTab("analyze");
 });
 
-function drawArea(geojson) {
-  L.geoJSON(geojson, {
+function drawArea(geojson, start) {
+  const area = L.geoJSON(geojson, {
     pane: "area",
     renderer: areaRenderer,
     interactive: false,
@@ -107,6 +148,10 @@ function drawArea(geojson) {
       fillOpacity: 1,
     }),
   }).addTo(overlay);
+  // Fit to what was actually reached, which is usually well inside the
+  // reference circle. An empty area keeps the circle's bounds.
+  const reached = area.getBounds();
+  if (reached.isValid()) setAreaBounds(reached.extend(start));
 
   legend = L.control({ position: "bottomright" });
   legend.onAdd = () => {
@@ -122,6 +167,149 @@ function drawArea(geojson) {
   };
   legend.addTo(map);
 }
+
+// ------------------------------------------------------ map as a PNG
+
+// The map is drawn by Leaflet as tile images, canvases and a few HTML
+// elements. The PNG is put together from those same pieces, in the order
+// and at the positions they have on screen, so it shows the current view.
+
+const MAP_ATTRIBUTION = "© OpenStreetMap contributors";
+
+function tilesLoaded() {
+  if (!tiles.isLoading()) return Promise.resolve();
+  return new Promise((resolve) => {
+    const timer = setTimeout(resolve, 8000);
+    tiles.once("load", () => {
+      clearTimeout(timer);
+      resolve();
+    });
+  });
+}
+
+function fontOf(node) {
+  const style = getComputedStyle(node);
+  return `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+}
+
+// Shorten text with an ellipsis until it fits, as the on-screen label does.
+function fitText(ctx, text, width) {
+  if (ctx.measureText(text).width <= width + 1) return text;
+  let cut = text.length;
+  while (cut > 1 && ctx.measureText(`${text.slice(0, cut)}…`).width > width) cut -= 1;
+  return `${text.slice(0, cut)}…`;
+}
+
+async function renderMapPng() {
+  await tilesLoaded();
+  const container = map.getContainer();
+  const box = container.getBoundingClientRect();
+  const scale = window.devicePixelRatio || 1;
+  const canvas = el("canvas", {
+    width: Math.round(box.width * scale),
+    height: Math.round(box.height * scale),
+  });
+  const ctx = canvas.getContext("2d");
+  ctx.scale(scale, scale);
+  ctx.fillStyle = "#ddd";
+  ctx.fillRect(0, 0, box.width, box.height);
+  const place = (node) => {
+    const r = node.getBoundingClientRect();
+    return { x: r.left - box.left, y: r.top - box.top, w: r.width, h: r.height };
+  };
+
+  // Tiles and drawn layers, lowest pane first.
+  const pieces = [...container.querySelectorAll("img.leaflet-tile-loaded, .leaflet-pane canvas")]
+    .map((node, order) => {
+      const style = getComputedStyle(node.closest(".leaflet-pane"));
+      return { node, order, z: Number(style.zIndex) || 0, opacity: Number(style.opacity) };
+    })
+    .sort((a, b) => a.z - b.z || a.order - b.order);
+  for (const { node, opacity } of pieces) {
+    const { x, y, w, h } = place(node);
+    ctx.globalAlpha = opacity;
+    ctx.drawImage(node, x, y, w, h);
+  }
+  ctx.globalAlpha = 1;
+  ctx.textBaseline = "middle";
+
+  // The name beside the start point.
+  const label = pin.getTooltip() && pin.getTooltip().getElement();
+  if (label && label.isConnected) {
+    const { x, y, w, h } = place(label);
+    ctx.font = fontOf(label);
+    const text = fitText(ctx, label.textContent, w);
+    ctx.lineJoin = "round";
+    ctx.lineWidth = 3.5;
+    ctx.strokeStyle = "#fff";
+    ctx.strokeText(text, x, y + h / 2);
+    ctx.fillStyle = getComputedStyle(label).color;
+    ctx.fillText(text, x, y + h / 2);
+  }
+
+  // The legend.
+  const key = legend && legend.getContainer();
+  if (key) {
+    const style = getComputedStyle(key);
+    const { x, y, w, h } = place(key);
+    ctx.fillStyle = style.backgroundColor;
+    ctx.strokeStyle = "rgb(0 0 0 / 30%)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(x, y, w, h, 8);
+    else ctx.rect(x, y, w, h);
+    ctx.fill();
+    ctx.stroke();
+    for (const row of key.children) {
+      const line = place(row);
+      let left = line.x;
+      const swatch = row.querySelector("i");
+      if (swatch) {
+        const s = place(swatch);
+        ctx.fillStyle = swatch.style.background;
+        ctx.fillRect(s.x, s.y, s.w, s.h);
+        left = s.x + s.w + 6;
+      }
+      ctx.font = fontOf(row);
+      ctx.fillStyle = style.color;
+      ctx.fillText(row.textContent, left, line.y + line.h / 2);
+    }
+  }
+
+  // Credit for the map tiles, which their licence requires.
+  ctx.font = "11px system-ui, sans-serif";
+  const creditWidth = ctx.measureText(MAP_ATTRIBUTION).width + 10;
+  ctx.fillStyle = "rgb(255 255 255 / 80%)";
+  ctx.fillRect(box.width - creditWidth, box.height - 18, creditWidth, 18);
+  ctx.fillStyle = "#333";
+  ctx.fillText(MAP_ATTRIBUTION, box.width - creditWidth + 5, box.height - 9);
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("empty image"))), "image/png");
+  });
+}
+
+$("#dl-map-png").addEventListener("click", async (event) => {
+  const button = event.currentTarget;
+  const name = current ? siteName(current.request) : "map";
+  showError($("#map-png-error"), "");
+  button.disabled = true;
+  button.textContent = "Rendering…";
+  try {
+    const url = URL.createObjectURL(await renderMapPng());
+    el("a", { href: url, download: `${name.replace(/[^\w.-]+/g, "_")}-map.png` }).click();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+  } catch (error) {
+    console.error(error);
+    showError(
+      $("#map-png-error"),
+      "The map image could not be made. Wait for the map to finish loading, then try again.",
+    );
+  } finally {
+    button.disabled = false;
+    button.textContent = "Rendered Map (png)";
+  }
+});
 
 // --------------------------------------------------------------- tabs
 
@@ -277,6 +465,7 @@ async function showAnalysis(record) {
 
   clearOverlay();
   setPin(result.start.lat, result.start.lon);
+  setPinLabel(siteName(request));
   const reference = L.circle([result.start.lat, result.start.lon], {
     radius: request.radius_m,
     color: "#444",
@@ -286,10 +475,11 @@ async function showAnalysis(record) {
     interactive: false,
   }).addTo(overlay);
   map.fitBounds(reference.getBounds(), { padding: [10, 10] });
+  setAreaBounds(reference.getBounds());
 
   const geojson = await fetch(`/api/analyses/${record.id}/area.geojson`).then((r) => r.json());
   if (current === record) {
-    drawArea(geojson);
+    drawArea(geojson, [result.start.lat, result.start.lon]);
     pin.bringToFront();
   }
 }
