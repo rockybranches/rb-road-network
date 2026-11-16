@@ -175,6 +175,65 @@ function renderReport(report) {
     : "";
 }
 
+// The detailed result (every reached 250 m road cell, in the layout of the
+// earlier C++ program) is built by the Worker in the background, so the page
+// asks for it and then checks back until it is ready.
+const DETAIL_POLL_MS = 5000;
+let detailTimer = null;
+
+function renderDetail(record, detail) {
+  clearTimeout(detailTimer);
+  const build = $("#detail-build");
+  const link = $("#dl-detail");
+  const status = $("#detail-status");
+  const state = detail ? detail.status : null;
+  link.hidden = state !== "done";
+  build.hidden = state === "done";
+  build.disabled = state === "queued" || state === "running";
+  build.textContent = build.disabled ? "Building detailed GeoJSON…" : "Build detailed GeoJSON";
+  status.hidden = !state;
+  if (state === "done") {
+    const slug = siteName(record.request).replace(/[^\w.-]+/g, "_");
+    Object.assign(link, {
+      href: `/api/analyses/${record.id}/detail.geojson`,
+      download: `${slug}-detail.geojson`,
+    });
+    status.textContent = `${fmt(detail.points)} points, ${fmt(detail.bytes / 1e6, 1)} MB`;
+  } else if (state === "failed") {
+    status.textContent = `The detailed result failed: ${detail.error}`;
+  } else if (state) {
+    status.textContent = "Being built in the background; this can take a few minutes.";
+    detailTimer = setTimeout(() => pollDetail(record), DETAIL_POLL_MS);
+  }
+}
+
+async function pollDetail(record) {
+  if (current !== record) return;
+  try {
+    const { detail } = await api(`/api/analyses/${record.id}/detail`);
+    if (current === record) renderDetail(record, detail);
+  } catch (err) {
+    if (current === record) {
+      // Keep checking: one failed request is not the end of the job.
+      $("#detail-status").textContent = `Could not check progress (${err.message}); retrying.`;
+      detailTimer = setTimeout(() => pollDetail(record), DETAIL_POLL_MS);
+    }
+  }
+}
+
+$("#detail-build").addEventListener("click", async () => {
+  const record = current;
+  if (!record) return;
+  $("#detail-build").disabled = true;
+  try {
+    const { analyses } = await api(`/api/analyses/${record.id}/detail`, { method: "POST" });
+    if (current === record) renderDetail(record, analyses[0].detail);
+  } catch (err) {
+    $("#detail-build").disabled = false;
+    showError($("#form-error"), err.message);
+  }
+});
+
 async function showAnalysis(record) {
   current = record;
   const { request, result } = record;
@@ -210,6 +269,7 @@ async function showAnalysis(record) {
     href: `/api/analyses/${record.id}/area.geojson`,
     download: `${slug}.geojson`,
   });
+  renderDetail(record, record.detail);
   $("#result").hidden = false;
   showError($("#form-error"), "");
   selectTab("analyze");

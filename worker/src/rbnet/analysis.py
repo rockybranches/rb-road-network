@@ -6,6 +6,7 @@ tiles named by `plan_window` from storage and hands the decompressed bytes to
 """
 
 import math
+from array import array
 from dataclasses import dataclass, field
 
 from . import area as ar
@@ -48,10 +49,22 @@ class Analysis:
     # is cut off there rather than genuinely unreachable.
     uncovered_tiles: int = 0
     area: ar.Area = None  # coarse copy of the reached area, for maps
+    # Every reached cell, only when asked for (see `analyze`), in row order
+    # from the south-west.
+    cells: "ReachedCells" = None
 
     @property
     def reached_km2(self):
         return self.reached_cells * CELL_KM2
+
+
+@dataclass
+class ReachedCells:
+    cols: array  # national grid column of each reached cell
+    rows: array  # national grid row
+
+    def __len__(self):
+        return len(self.cols)
 
 
 def plan_window(lat, lon, radius_m):
@@ -68,11 +81,13 @@ def plan_window(lat, lon, radius_m):
     return Window(col, row, tx0, ty0, tx1, ty1)
 
 
-def analyze(window, radius_m, road_tiles, county_tiles):
+def analyze(window, radius_m, road_tiles, county_tiles, keep_cells=False):
     """Run the reachability search and count reached cells per county.
 
     `road_tiles` and `county_tiles` map (tx, ty) -> decompressed tile bytes
-    for the tiles inside `window`; tiles with no data may be absent.
+    for the tiles inside `window`; tiles with no data may be absent. With
+    `keep_cells`, the result also lists every reached cell (`cells`), for
+    the detailed result; it is off by default because it costs memory.
     """
     if not road_tiles:
         raise AnalysisError("no road data is loaded for this area")
@@ -100,6 +115,8 @@ def analyze(window, radius_m, road_tiles, county_tiles):
     bstride = ntx * ar.BLOCKS_PER_TILE
     blocks = bytearray(bstride * nty * ar.BLOCKS_PER_TILE)
 
+    if keep_cells:
+        kept = ReachedCells(array("i"), array("i"))
     county_cells = {}
     reached = 0
     cmin = rmin = 1 << 30
@@ -115,6 +132,9 @@ def analyze(window, radius_m, road_tiles, county_tiles):
         lvl = 1 + d * scale // budget
         if blocks[j] == 0 or lvl < blocks[j]:
             blocks[j] = lvl
+        if keep_cells:
+            kept.cols.append(c + col_off)
+            kept.rows.append(r + row_off)
         if c < cmin:
             cmin = c
         if c > cmax:
@@ -163,4 +183,5 @@ def analyze(window, radius_m, road_tiles, county_tiles):
         outside_cells=outside,
         uncovered_tiles=uncovered,
         area=area,
+        cells=kept if keep_cells else None,
     )

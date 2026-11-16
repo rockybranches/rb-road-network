@@ -7,6 +7,7 @@ CSV of sites), print the result and save the report files.
     rb-road-network run --lat 33.732 --lon -84.4166 --name Atlanta
     rb-road-network batch --csv batch_inputs.csv
     rb-road-network batch --resume BATCH_ID
+    rb-road-network detail ANALYSIS_ID
 
 The Worker address comes from --url or RB_API_URL (default
 http://localhost:8787, the local development server).
@@ -15,6 +16,7 @@ http://localhost:8787, the local development server).
 import json
 import re
 import sys
+import time
 from pathlib import Path
 
 import click
@@ -22,6 +24,9 @@ import click
 from .client import DEFAULT_URL, URL_ENV, ApiError, Client
 
 DEFAULT_OUTPUT_DIR = "output"
+DETAIL_SUFFIX = "-detail.geojson"
+DEFAULT_DETAIL_TIMEOUT_S = 1800
+POLL_S = 5.0
 
 
 def _stem(label, fallback):
@@ -47,6 +52,54 @@ def _save_outputs(client, record, tex_path):
     _write(paths[1], json.dumps(record, indent=2) + "\n")
     _write(paths[2], client.area_geojson(aid))
     return paths
+
+
+def _detail_path(tex_path):
+    """Where the detailed result goes, beside the other files of a site."""
+    return tex_path.with_name(tex_path.stem + DETAIL_SUFFIX)
+
+
+def _fetch_details(client, jobs, timeout_s, batch_id=None):
+    """Request detailed results, wait for them and save each one.
+
+    `jobs` maps analysis id -> (label, path). The Worker builds the files in
+    the background, so this polls until each is done or failed, or until
+    `timeout_s` passes. Returns the number that did not finish.
+    """
+    if batch_id is not None:
+        client.request_batch_detail(batch_id)
+    else:
+        for aid in jobs:
+            client.request_detail(aid)
+    click.echo(f"Building {len(jobs)} detailed result(s) in the background...")
+    deadline = time.monotonic() + timeout_s
+    waiting = dict(jobs)
+    problems = 0
+    while waiting:
+        for aid, (label, path) in list(waiting.items()):
+            detail = client.detail_state(aid)["detail"] or {}
+            status = detail.get("status")
+            if status == "done":
+                _write(path, client.detail_geojson(aid))
+                click.echo(f"{label}: {detail['points']:,} points saved to {path}")
+                del waiting[aid]
+            elif status == "failed":
+                click.secho(f"{label}: detailed result failed: {detail['error']}", fg="red", err=True)
+                problems += 1
+                del waiting[aid]
+        if not waiting:
+            break
+        if time.monotonic() >= deadline:
+            for aid, (label, _) in waiting.items():
+                click.secho(
+                    f"{label}: still being built; fetch it later with "
+                    f"rb-road-network detail {aid}",
+                    fg="yellow",
+                    err=True,
+                )
+            return problems + len(waiting)
+        time.sleep(POLL_S)
+    return problems
 
 
 def _people(n):
@@ -165,13 +218,19 @@ def status(client):
 )  # fmt: skip
 @click.option("--name", default="", help="Name for the stored analysis.")
 @click.option(
+    "--detail", is_flag=True,
+    help="Also save the fully detailed result: every reached 250 m road cell "
+    f"as GeoJSON, in the legacy layout (<name>{DETAIL_SUFFIX}). It is built "
+    "in the background and can take a few minutes.",
+)  # fmt: skip
+@click.option(
     "-f", "--output", type=click.Path(dir_okay=False, path_type=Path), default=None,
     help="Where to save the LaTeX table; the full result (.json) and the "
     "reachable area (.geojson) are saved beside it. "
     f"[default: {DEFAULT_OUTPUT_DIR}/<name or id>.tex]",
 )  # fmt: skip
 @click.pass_obj
-def run(client, lat, lon, radius, tons_per_person, min_km2, name, output):
+def run(client, lat, lon, radius, tons_per_person, min_km2, name, detail, output):
     """Analyse one start point and save the results."""
     try:
         record = client.create_analysis(
@@ -188,11 +247,16 @@ def run(client, lat, lon, radius, tons_per_person, min_km2, name, output):
         if output is None:
             output = Path(DEFAULT_OUTPUT_DIR) / f"{_stem(name, record['id'])}.tex"
         paths = _save_outputs(client, record, output)
+        click.echo()
+        click.echo("Saved: " + ", ".join(str(p) for p in paths))
+        click.echo(f"Map: {client.page_url('#a/' + record['id'])}")
+        if detail:
+            label = name or record["id"]
+            jobs = {record["id"]: (label, _detail_path(output))}
+            if _fetch_details(client, jobs, DEFAULT_DETAIL_TIMEOUT_S):
+                sys.exit(1)
     except ApiError as exc:
         raise click.ClickException(str(exc)) from None
-    click.echo()
-    click.echo("Saved: " + ", ".join(str(p) for p in paths))
-    click.echo(f"Map: {client.page_url('#a/' + record['id'])}")
 
 
 @cli.command()
@@ -223,9 +287,13 @@ def run(client, lat, lon, radius, tons_per_person, min_km2, name, output):
     "--retry-failed", is_flag=True,
     help="With --resume, also run again the sites that failed.",
 )  # fmt: skip
+@click.option(
+    "--detail", is_flag=True,
+    help=f"Also save each site's fully detailed result (<site>{DETAIL_SUFFIX}).",
+)  # fmt: skip
 @click.pass_obj
 def batch(client, csv_file, batch_id, name, radius, tons_per_person, min_km2,
-          output_dir, retry_failed):  # fmt: skip
+          output_dir, retry_failed, detail):  # fmt: skip
     """Analyse every site in a CSV.
 
     Finished sites are stored by the Worker as they complete, so an
@@ -254,6 +322,7 @@ def batch(client, csv_file, batch_id, name, radius, tons_per_person, min_km2,
         wanted = {"pending", "failed"} if retry_failed else {"pending"}
         failed = 0
         used = set()
+        detail_jobs = {}
         for n, site in enumerate(sites, start=1):
             label = site["request"]["label"] or f"site {n}"
             stem = _stem(site["request"]["label"], f"site_{n}")
@@ -267,6 +336,7 @@ def batch(client, csv_file, batch_id, name, radius, tons_per_person, min_km2,
                 # The run and list responses carry only the summary; the
                 # saved file gets the full result.
                 _save_outputs(client, client.analysis(site["id"]), output_dir / f"{stem}.tex")
+                detail_jobs[site["id"]] = (label, output_dir / f"{stem}{DETAIL_SUFFIX}")
                 s = site["summary"]
                 click.echo(
                     f"{prefix}{s['counties']} counties, "
@@ -281,12 +351,48 @@ def batch(client, csv_file, batch_id, name, radius, tons_per_person, min_km2,
 
         summary_path = output_dir / f"batch_{batch_id}_summary.csv"
         _write(summary_path, client.batch_summary_csv(batch_id))
+        if detail and detail_jobs:
+            failed += _fetch_details(
+                client, detail_jobs, DEFAULT_DETAIL_TIMEOUT_S, batch_id=batch_id
+            )
     except ApiError as exc:
         hint = f". Continue with: rb-road-network batch --resume {batch_id}" if batch_id else ""
         raise click.ClickException(f"{exc}{hint}") from None
     click.echo(f"Summary: {summary_path}")
     if failed:
         click.secho(f"{failed} site(s) failed.", fg="red", err=True)
+        sys.exit(1)
+
+
+@cli.command()
+@click.argument("analysis_id")
+@click.option(
+    "-o", "--output", type=click.Path(dir_okay=False, path_type=Path), default=None,
+    help=f"Where to save it. [default: {DEFAULT_OUTPUT_DIR}/<name or id>{DETAIL_SUFFIX}]",
+)  # fmt: skip
+@click.option(
+    "--timeout", type=float, default=DEFAULT_DETAIL_TIMEOUT_S, show_default=True,
+    help="Seconds to wait for it to be built.",
+)  # fmt: skip
+@click.pass_obj
+def detail(client, analysis_id, output, timeout):
+    """Save the fully detailed result of a stored analysis.
+
+    This is every reached 250 m road cell as GeoJSON, in the layout the
+    earlier C++ program wrote (a StartPoint and an AccessibleArea
+    MultiPoint). The Worker builds it in the background the first time it is
+    asked for; this waits for it and saves it.
+    """
+    try:
+        record = client.analysis(analysis_id)
+        label = record["request"]["label"] or analysis_id
+        if output is None:
+            stem = _stem(record["request"]["label"], analysis_id)
+            output = Path(DEFAULT_OUTPUT_DIR) / f"{stem}{DETAIL_SUFFIX}"
+        problems = _fetch_details(client, {analysis_id: (label, output)}, timeout)
+    except ApiError as exc:
+        raise click.ClickException(str(exc)) from None
+    if problems:
         sys.exit(1)
 
 

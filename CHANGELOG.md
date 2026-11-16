@@ -29,6 +29,14 @@ Everything below **[Unreleased]** describes that program.
   no longer fires over open water.
 - **CI** (`.github/workflows/ci.yml`) — Worker, ingest and client tests, plus
   a dry-run bundle of the Worker, on every push and pull request.
+- **Fully detailed results** — every reached 250 m road cell of an analysis
+  as GeoJSON, in the layout the C++ program wrote (`StartPoint` plus an
+  `AccessibleArea` MultiPoint). The Worker builds it in the background (a
+  Queue consumer writing to R2) when asked: `POST /api/analyses/{id}/detail`
+  or `/api/batches/{id}/detail`, then `GET .../detail.geojson`. The map page
+  has a button for it, and the CLI has `detail` and `run`/`batch --detail`.
+  Needs migration `0004_details.sql`, an R2 bucket and a queue; see
+  `worker/README.md`.
 
 ### Changed
 - **`rb-road-network` CLI is now a client of the Worker.** `run` and `batch`

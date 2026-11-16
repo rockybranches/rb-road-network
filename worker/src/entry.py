@@ -12,12 +12,16 @@ Routes
   GET    /api/analyses/{id}               a stored analysis with its result
   GET    /api/analyses/{id}/report.tex    its report as the legacy LaTeX table
   GET    /api/analyses/{id}/area.geojson  its reachable area, for maps
+  POST   /api/analyses/{id}/detail        start building its detailed result
+  GET    /api/analyses/{id}/detail        progress of the detailed result
+  GET    /api/analyses/{id}/detail.geojson  the detailed result, once built
   POST   /api/analyses/{id}/run           run a pending or failed batch row
   DELETE /api/analyses/{id}
   POST   /api/batches                     create a batch from a sites CSV
   GET    /api/batches                     batches with progress counts
   GET    /api/batches/{id}                a batch and its rows
   GET    /api/batches/{id}/summary.csv    one line per site
+  POST   /api/batches/{id}/detail         detailed results for every finished row
   DELETE /api/batches/{id}                the batch and all its rows
 
 Analysis parameters (query string for GET, JSON body for POST)
@@ -31,6 +35,11 @@ Analysis parameters (query string for GET, JSON body for POST)
 A batch is created with every row 'pending'; the client then calls
 /api/analyses/{id}/run for each row. Each run is an ordinary short request,
 so a batch of any size stays within Worker limits and can be resumed.
+
+A detailed result (every reached 250 m cell, in the legacy GeoJSON layout;
+see rbnet/detail.py) runs in the background: the POST queues the analysis
+on DETAIL_QUEUE and returns at once, `queue` below runs the search again
+and writes the file to the DETAILS bucket, and the client polls the GET.
 """
 
 import json
@@ -44,12 +53,20 @@ from urllib.parse import parse_qs, urlparse
 from workers import Response, WorkerEntrypoint
 
 from rbnet import area as ar
+from rbnet import detail as dt
 from rbnet.analysis import CELL_KM2, AnalysisError, analyze, plan_window
 from rbnet.params import Params, parse_params, parse_sites_csv, summary_csv
 from rbnet.report import BASE_YEAR, REPORT_YEARS, TARGET_YEAR, build_report, to_latex
 
 MAX_BODY_BYTES = 256 * 1024
 LIST_LIMIT = 100
+# Queue deliveries of one detail job, matching max_retries in wrangler.jsonc.
+DETAIL_ATTEMPTS = 3
+# A job still queued or running after this long is taken to be lost (for
+# example, killed at the CPU limit after its last retry), and asking again
+# queues it afresh.
+DETAIL_STALE_S = 3600
+QUEUE_SEND_LIMIT = 100  # messages per sendBatch call
 
 TILES_SQL = (
     "SELECT layer, tx, ty, hex(data) AS h FROM raster_tiles "
@@ -71,11 +88,18 @@ POPULATION_SQL = (
 # Stored rows are read back as one JSON document per row, built by SQLite.
 # That keeps SQL NULLs as JSON nulls instead of passing them through the
 # JavaScript bridge, and makes the record shape identical on every route.
+DETAIL_JSON = (
+    "CASE WHEN detail_status IS NOT NULL THEN json_object("
+    "'status', detail_status, 'error', detail_error, "
+    "'requested_at', detail_requested_at, 'completed_at', detail_completed_at, "
+    "'points', detail_points, 'bytes', detail_bytes) END"
+)
 RECORD = (
     "json_object('id', id, 'batch_id', batch_id, 'seq', seq, 'status', status, "
     "'error', error, 'created_at', created_at, 'completed_at', completed_at, "
     "'request', json_object('label', label, 'lat', lat, 'lon', lon, "
     "'radius_m', radius_m, 'tons_per_person', tons_per_person, 'min_km2', min_km2), "
+    f"'detail', {DETAIL_JSON}, "
     "'summary', CASE WHEN status = 'done' THEN json_object('counties', counties, "
     "'reached_km2', reached_km2, 'population_base', population_base, "
     "'population_target', population_target) END"
@@ -102,6 +126,16 @@ FINISH_SQL = (
     "population_target = ?2->>'population_target', result = ?2->>'result', "
     "area = unhex(?2->>'area') WHERE id = ?1"
 )
+DETAIL_QUEUED_SQL = (
+    "UPDATE analyses SET detail_status = 'queued', detail_error = NULL, "
+    "detail_requested_at = ?2, detail_completed_at = NULL, detail_points = NULL, "
+    "detail_bytes = NULL WHERE id IN (SELECT value FROM json_each(?1))"
+)
+DETAIL_FINISH_SQL = (
+    "UPDATE analyses SET detail_status = ?2->>'status', "
+    "detail_error = ?2->>'error', detail_completed_at = ?2->>'completed_at', "
+    "detail_points = ?2->>'points', detail_bytes = ?2->>'bytes' WHERE id = ?1"
+)
 BATCHES_SQL = (
     "SELECT json_object('id', b.id, 'label', b.label, 'created_at', b.created_at, "
     "'sites', count(a.id), "
@@ -113,6 +147,10 @@ BATCHES_SQL = (
 
 class NotFound(Exception):
     pass
+
+
+class Conflict(Exception):
+    """The request is valid but cannot be met yet; the message says why."""
 
 
 def _json(obj, status=200):
@@ -127,6 +165,15 @@ def _text(body, content_type="text/plain; charset=utf-8"):
 
 def _now():
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+def _age_s(iso):
+    """Seconds since an ISO timestamp written by `_now`."""
+    try:
+        then = datetime.fromisoformat(iso)
+    except (TypeError, ValueError):
+        return float("inf")
+    return (datetime.now(timezone.utc) - then).total_seconds()
 
 
 def _new_id():
@@ -164,6 +211,8 @@ class Default(WorkerEntrypoint):
             return _json({"error": str(exc)}, 400)
         except NotFound:
             return _json({"error": "not found"}, 404)
+        except Conflict as exc:
+            return _json({"error": str(exc)}, 409)
         except Exception:
             traceback.print_exc()  # goes to the Worker's logs
             return _json({"error": "internal error"}, 500)
@@ -191,11 +240,19 @@ class Default(WorkerEntrypoint):
                 return _text(to_latex(record["result"]["report"]))
             case ("GET", ["analyses", aid, "area.geojson"]):
                 return _text(json.dumps(await self.area(aid)), "application/geo+json")
+            case ("POST", ["analyses", aid, "detail"]):
+                return _json(await self.request_details([await self.record(aid)]), 202)
+            case ("GET", ["analyses", aid, "detail"]):
+                record = await self.record(aid)
+                return _json({"id": aid, "detail": record["detail"]})
+            case ("GET", ["analyses", aid, "detail.geojson"]):
+                return await self.detail_file(aid)
             case ("POST", ["analyses", aid, "run"]):
                 return _json(await self.run_analysis(aid))
             case ("DELETE", ["analyses", aid]):
-                await self.record(aid)
+                record = await self.record(aid)
                 await self.execute("DELETE FROM analyses WHERE id = ?1", aid)
+                await self.delete_details([record])
                 return _json({"deleted": aid})
             case ("POST", ["batches"]):
                 return _json(await self.create_batch(await self.body(request)), 201)
@@ -206,10 +263,17 @@ class Default(WorkerEntrypoint):
             case ("GET", ["batches", bid, "summary.csv"]):
                 batch = await self.batch(bid)
                 return _text(summary_csv(batch["analyses"]), "text/csv; charset=utf-8")
+            case ("POST", ["batches", bid, "detail"]):
+                batch = await self.batch(bid)
+                done = [a for a in batch["analyses"] if a["status"] == "done"]
+                if not done:
+                    raise Conflict("no site in this batch has finished yet")
+                return _json(await self.request_details(done), 202)
             case ("DELETE", ["batches", bid]):
-                await self.batch(bid)
+                batch = await self.batch(bid)
                 await self.execute("DELETE FROM analyses WHERE batch_id = ?1", bid)
                 await self.execute("DELETE FROM batches WHERE id = ?1", bid)
+                await self.delete_details(batch["analyses"])
                 return _json({"deleted": bid})
         raise NotFound
 
@@ -357,18 +421,13 @@ class Default(WorkerEntrypoint):
         )
         return batch
 
-    async def compute(self, params):
-        """Run one analysis. Returns (API result, reachable-area grid)."""
-        p = params
-        window = plan_window(p.lat, p.lon, p.radius_m)
-        db = self.env.DB
-
-        t0 = time.perf_counter()
+    async def load_tiles(self, window, roads_dataset, counties_dataset):
+        """The decompressed road and county tiles inside `window`."""
         res = (
-            await db.prepare(TILES_SQL)
+            await self.env.DB.prepare(TILES_SQL)
             .bind(
-                self.env.ROADS_DATASET,
-                self.env.COUNTIES_DATASET,
+                roads_dataset,
+                counties_dataset,
                 window.ty0,
                 window.ty1,
                 window.tx0,
@@ -381,6 +440,18 @@ class Default(WorkerEntrypoint):
             tiles[r.layer][(int(r.tx), int(r.ty))] = zlib.decompress(
                 bytes.fromhex(r.h)
             )
+        return tiles
+
+    async def compute(self, params):
+        """Run one analysis. Returns (API result, reachable-area grid)."""
+        p = params
+        window = plan_window(p.lat, p.lon, p.radius_m)
+        db = self.env.DB
+
+        t0 = time.perf_counter()
+        tiles = await self.load_tiles(
+            window, self.env.ROADS_DATASET, self.env.COUNTIES_DATASET
+        )
         t1 = time.perf_counter()
 
         found = analyze(window, p.radius_m, tiles["roads"], tiles["counties"])
@@ -447,3 +518,138 @@ class Default(WorkerEntrypoint):
             },
         }
         return result, found.area
+
+    # -- detailed results --------------------------------------------------
+
+    async def request_details(self, records):
+        """Queue a detailed result for each finished record that has none.
+
+        Records already queued, running or done are left alone, except a
+        job that has been queued or running for longer than DETAIL_STALE_S,
+        which is taken to be lost and queued again. A failed one is retried.
+        """
+        for record in records:
+            if record["status"] != "done":
+                raise Conflict(
+                    "the analysis has not finished, so it has no detailed result yet"
+                )
+        wanted = []
+        for record in records:
+            d = record["detail"]
+            if d is None or d["status"] == "failed":
+                wanted.append(record["id"])
+            elif d["status"] in ("queued", "running") and (
+                _age_s(d["requested_at"]) > DETAIL_STALE_S
+            ):
+                wanted.append(record["id"])
+        if wanted:
+            await self.execute(DETAIL_QUEUED_SQL, json.dumps(wanted), _now())
+            for i in range(0, len(wanted), QUEUE_SEND_LIMIT):
+                await self.env.DETAIL_QUEUE.sendBatch(
+                    [{"body": json.dumps({"id": aid})} for aid in wanted[i : i + QUEUE_SEND_LIMIT]]
+                )
+        ids = json.dumps([r["id"] for r in records])
+        found = await self.rows(
+            "SELECT json_object('id', id, 'detail', " + DETAIL_JSON + ") AS j "
+            "FROM analyses WHERE id IN (SELECT value FROM json_each(?1)) "
+            "ORDER BY batch_id, seq",
+            ids,
+        )
+        return {"queued": len(wanted), "analyses": found}
+
+    async def detail_file(self, aid):
+        record = await self.record(aid)
+        d = record["detail"]
+        if d is None:
+            raise Conflict(
+                f"no detailed result has been asked for; POST /api/analyses/{aid}/detail"
+            )
+        if d["status"] == "failed":
+            raise Conflict(f"the detailed result failed: {d['error']}")
+        if d["status"] != "done":
+            raise Conflict(f"the detailed result is not ready yet ({d['status']})")
+        obj = await self.env.DETAILS.get(dt.object_key(aid))
+        if obj is None:
+            raise NotFound
+        stem = "".join(ch if ch.isalnum() or ch in "-_" else "_" for ch in record["request"]["label"])
+        filename = f"{stem or aid}-detail.geojson"
+        return Response(
+            obj.body,
+            headers={
+                "content-type": "application/geo+json",
+                "content-disposition": f'attachment; filename="{filename}"',
+            },
+        )
+
+    async def delete_details(self, records):
+        keys = [dt.object_key(r["id"]) for r in records if r["detail"] is not None]
+        # R2 deletes at most 1000 keys per call.
+        for i in range(0, len(keys), 1000):
+            await self.env.DETAILS.delete(keys[i : i + 1000])
+
+    async def finish_detail(self, aid, **fields):
+        fields.setdefault("completed_at", _now())
+        await self.execute(DETAIL_FINISH_SQL, aid, json.dumps(fields))
+
+    async def build_detail(self, aid):
+        """Run an analysis's search again and store the detailed result.
+
+        Uses the datasets the stored result was computed from, so the file
+        matches the report even if the Worker has since moved to new data.
+        """
+        found = await self.rows(FULL_RECORD_SQL, aid)
+        if not found:
+            return  # deleted while it waited in the queue
+        record = found[0]
+        if record["status"] != "done" or record["detail"] is None:
+            return
+        await self.execute(
+            "UPDATE analyses SET detail_status = 'running' WHERE id = ?1", aid
+        )
+        request = record["request"]
+        datasets = record["result"]["datasets"]
+        try:
+            params = parse_params(request)
+            window = plan_window(params.lat, params.lon, params.radius_m)
+            tiles = await self.load_tiles(window, datasets["roads"], datasets["counties"])
+            analysis = analyze(
+                window, params.radius_m, tiles["roads"], tiles["counties"], keep_cells=True
+            )
+        except AnalysisError as exc:
+            await self.finish_detail(aid, status="failed", error=str(exc))
+            return
+        text = dt.to_geojson(analysis, params.to_dict(), datasets, aid)
+        points = len(analysis.cells)
+        del analysis, tiles
+        await self.env.DETAILS.put(
+            dt.object_key(aid),
+            text,
+            {"httpMetadata": {"contentType": "application/geo+json"}},
+        )
+        await self.finish_detail(
+            aid, status="done", error=None, points=points, bytes=len(text)
+        )
+
+    async def queue(self, batch):
+        """Queue consumer: build the detailed results named in `batch`."""
+        for message in batch.messages:
+            try:
+                aid = str(json.loads(message.body)["id"])
+            except (TypeError, ValueError, KeyError):
+                print(f"detail queue: ignoring malformed message {message.body!r}")
+                message.ack()
+                continue
+            try:
+                await self.build_detail(aid)
+                message.ack()
+            except Exception:
+                traceback.print_exc()
+                if message.attempts >= DETAIL_ATTEMPTS:
+                    await self.finish_detail(
+                        aid,
+                        status="failed",
+                        error=f"internal error after {message.attempts} attempts",
+                    )
+                    message.ack()
+                else:
+                    message.retry()

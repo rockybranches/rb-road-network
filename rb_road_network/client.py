@@ -125,6 +125,21 @@ class Client:
     def area_geojson(self, analysis_id):
         return self._request("GET", f"/api/analyses/{quote(analysis_id, safe='')}/area.geojson")
 
+    def request_detail(self, analysis_id):
+        """Ask the Worker to build the detailed result in the background."""
+        return self._json("POST", f"/api/analyses/{quote(analysis_id, safe='')}/detail")
+
+    def detail_state(self, analysis_id):
+        return self._json("GET", f"/api/analyses/{quote(analysis_id, safe='')}/detail")
+
+    def detail_geojson(self, analysis_id):
+        return self._request(
+            "GET", f"/api/analyses/{quote(analysis_id, safe='')}/detail.geojson"
+        )
+
+    def request_batch_detail(self, batch_id):
+        return self._json("POST", f"/api/batches/{quote(batch_id, safe='')}/detail")
+
     def create_batch(self, payload):
         return self._json("POST", "/api/batches", payload)
 

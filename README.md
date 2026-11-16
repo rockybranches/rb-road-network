@@ -57,10 +57,23 @@ Options: `-r/--radius` in metres (default 75000), `-t/--tons-per-person`
 (default 4.5), `--min-km2` to leave out counties that are barely touched, and
 `-f/--output` to choose where the `.tex` file goes.
 
+Add `--detail` to also save the fully detailed result, `<name>-detail.geojson`:
+every reached 250 m road cell as GeoJSON, in the same layout as the earlier
+C++ program's result files (a `StartPoint` and an `AccessibleArea`
+MultiPoint, so the QGIS script in `scripts/qgis_scripts/` reads it). It is a
+few megabytes for a 75 km search, so the Worker builds it in the background;
+the command waits for it, normally under a minute. For an analysis that is
+already stored:
+
+```bash
+rb-road-network detail <analysis id>      # -o to choose the file
+```
+
 `batch` takes a CSV with a header row `site, lat, lon`, runs every site, and
 writes the same three files per site plus `batch_<id>_summary.csv` with one
 line per site. Sites that cannot be analysed are reported and the command
-exits with status 1. An interrupted batch continues with
+exits with status 1. `batch --detail` saves each site's detailed result too.
+An interrupted batch continues with
 `rb-road-network batch --resume <id>`; add `--retry-failed` to run the failed
 sites again.
 

@@ -7,6 +7,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import pytest
 from click.testing import CliRunner
 
+from rb_road_network import cli as cli_module
 from rb_road_network.cli import _stem, cli
 from rb_road_network.client import ApiError, Client
 
@@ -48,6 +49,9 @@ class FakeWorker:
         self.requests = []  # (method, path, headers, body)
         self.fail_sites = set()  # labels whose run ends as 'failed'
         self.redirect_to = None
+        self.details = {}  # analysis id -> polls left before it is done
+        self.detail_polls = 1  # polls that answer 'running' before 'done'
+        self.fail_details = set()  # labels whose detailed result fails
 
     def record(self, aid, full=False):
         a = self.analyses[aid]
@@ -99,6 +103,25 @@ class FakeWorker:
                 else:
                     a.update(status="done", error=None)
                 return 200, self.record(aid)
+            case ("POST", ["api", "analyses", aid, "detail"]) if aid in self.analyses:
+                self.details.setdefault(aid, self.detail_polls)
+                return 202, {"queued": 1, "analyses": [{"id": aid}]}
+            case ("POST", ["api", "batches", bid, "detail"]) if bid in self.batches:
+                done = [a for a in self.batches[bid]["ids"] if self.analyses[a]["status"] == "done"]
+                for aid in done:
+                    self.details.setdefault(aid, self.detail_polls)
+                return 202, {"queued": len(done), "analyses": [{"id": a} for a in done]}
+            case ("GET", ["api", "analyses", aid, "detail"]) if aid in self.analyses:
+                if aid not in self.details:
+                    return 200, {"id": aid, "detail": None}
+                if self.analyses[aid]["request"]["label"] in self.fail_details:
+                    return 200, {"id": aid, "detail": {"status": "failed", "error": "boom"}}
+                if self.details[aid] > 0:
+                    self.details[aid] -= 1
+                    return 200, {"id": aid, "detail": {"status": "running"}}
+                return 200, {"id": aid, "detail": {"status": "done", "points": 6211}}
+            case ("GET", ["api", "analyses", aid, "detail.geojson"]) if aid in self.analyses:
+                return 200, '{"type": "FeatureCollection", "features": ["detail"]}'
             case ("POST", ["api", "batches"]):
                 lines = [ln for ln in body["csv"].splitlines()[1:] if ln.strip()]
                 bid = f"b{len(self.batches) + 1}"
@@ -158,6 +181,11 @@ def worker():
     yield fake
     server.shutdown()
     server.server_close()
+
+
+@pytest.fixture(autouse=True)
+def no_poll_wait(monkeypatch):
+    monkeypatch.setattr(cli_module, "POLL_S", 0)
 
 
 def invoke(worker, *args):
@@ -313,3 +341,62 @@ def test_non_json_answer():
 )
 def test_stem(label, expected):
     assert _stem(label, "x") == expected
+
+
+def test_run_with_detail_waits_for_it_and_saves_it(worker, tmp_path):
+    out = tmp_path / "Columbus.tex"
+    worker.detail_polls = 2
+    result = invoke(
+        worker, "run", "--lat", "32.59", "--lon", "-84.92", "--name", "Columbus",
+        "--detail", "-f", str(out),
+    )  # fmt: skip
+    assert result.exit_code == 0, result.output
+    detail = tmp_path / "Columbus-detail.geojson"
+    assert json.loads(detail.read_text())["features"] == ["detail"]
+    assert f"Columbus: 6,211 points saved to {detail}" in result.output
+    polls = [p for m, p, _, _ in worker.requests if p == "/api/analyses/a1/detail"]
+    assert len(polls) == 4  # the request, two 'running' answers, then 'done'
+
+
+def test_detail_command_names_the_file_after_the_site(worker, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    assert invoke(worker, "run", "--lat", "33", "--lon", "-84", "--name", "Diggs South").exit_code == 0
+    result = invoke(worker, "detail", "a1")
+    assert result.exit_code == 0, result.output
+    assert (tmp_path / "output" / "Diggs_South-detail.geojson").exists()
+
+
+def test_detail_failure_is_reported(worker, tmp_path):
+    assert invoke(worker, "run", "--lat", "33", "--lon", "-84", "--name", "X",
+                  "-f", str(tmp_path / "x.tex")).exit_code == 0  # fmt: skip
+    worker.fail_details.add("X")
+    result = invoke(worker, "detail", "a1", "-o", str(tmp_path / "d.geojson"))
+    assert result.exit_code == 1
+    assert "detailed result failed: boom" in result.output
+    assert not (tmp_path / "d.geojson").exists()
+
+
+def test_detail_timeout_says_how_to_fetch_it_later(worker, tmp_path):
+    assert invoke(worker, "run", "--lat", "33", "--lon", "-84",
+                  "-f", str(tmp_path / "x.tex")).exit_code == 0  # fmt: skip
+    worker.detail_polls = 10**6
+    result = invoke(worker, "detail", "a1", "--timeout", "0", "-o", str(tmp_path / "x.geojson"))
+    assert result.exit_code == 1
+    assert "rb-road-network detail a1" in result.output
+
+
+def test_detail_of_unknown_analysis(worker):
+    result = invoke(worker, "detail", "nope")
+    assert result.exit_code == 1 and "not found" in result.output
+
+
+def test_batch_with_detail_saves_one_per_finished_site(worker, tmp_path):
+    sites = tmp_path / "sites.csv"
+    sites.write_text("site,lat,lon\nA,32,-81\nB,33,-84\n")
+    worker.fail_sites.add("B")
+    out = tmp_path / "out"
+    result = invoke(worker, "batch", "--csv", str(sites), "-o", str(out), "--detail")
+    assert result.exit_code == 1  # B failed
+    assert (out / "A-detail.geojson").exists()
+    assert not (out / "B-detail.geojson").exists()
+    assert ("POST", "/api/batches/b1/detail") in [(m, p) for m, p, _, _ in worker.requests]

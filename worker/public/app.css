@@ -112,6 +112,8 @@ button, .button {
   cursor: pointer;
 }
 
+/* The display rule above would otherwise override the hidden attribute. */
+button[hidden], .button[hidden] { display: none; }
 button:disabled { opacity: 0.6; cursor: default; }
 button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); font-weight: 600; }
 button.danger { color: var(--danger); }

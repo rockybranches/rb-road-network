@@ -29,5 +29,26 @@
       "database_id": "fb2aeb0d-15fd-448a-b053-ecc3b4e2198a",
       "migrations_dir": "migrations"
     }
-  ]
+  ],
+  // Fully detailed results. They are too large for D1, so they are built by
+  // a queue consumer in this same Worker and kept in R2. Both must be
+  // created before the first deploy that has these bindings (see
+  // "Detailed results" in README.md).
+  "r2_buckets": [
+    { "binding": "DETAILS", "bucket_name": "rb-road-network-details" }
+  ],
+  "queues": {
+    "producers": [
+      { "binding": "DETAIL_QUEUE", "queue": "rb-road-network-details" }
+    ],
+    "consumers": [
+      {
+        "queue": "rb-road-network-details",
+        // One analysis per invocation, so each gets the full CPU limit.
+        "max_batch_size": 1,
+        "max_batch_timeout": 1,
+        "max_retries": 2
+      }
+    ]
+  }
 }

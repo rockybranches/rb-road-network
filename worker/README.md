@@ -19,7 +19,9 @@ sites from a CSV.
 - A batch is a set of `analyses` rows created as `pending` from a sites CSV.
   The page then runs them one request at a time, so a batch of any size
   stays within Worker limits and can be stopped and resumed. It needs the
-  page to stay open; nothing runs in the background.
+  page to stay open.
+- A **detailed result** (see below) is the one thing that runs in the
+  background, on a Cloudflare Queue.
 
 ## Layout
 
@@ -30,6 +32,7 @@ sites from a CSV.
 - `src/rbnet/analysis.py` — reachability plus the per-county roll-up
 - `src/rbnet/report.py` — population report and the legacy LaTeX layout
 - `src/rbnet/area.py` — the stored reachable area and its GeoJSON
+- `src/rbnet/detail.py` — the fully detailed result, in the legacy layout
 - `src/rbnet/params.py` — request validation, the sites CSV, the batch summary
 - `migrations/` — D1 schema
 - `tests/` — run with ordinary pytest; `rbnet` has no Cloudflare imports
@@ -121,6 +124,46 @@ Optional parameters: `radius_m` (default 75000), `tons_per_person` (default
 4.5) and `min_km2`, which leaves out counties with less reachable area than
 the given figure.
 
+### Detailed results
+
+The fully detailed result of a stored analysis lists every reached 250 m
+road cell, as GeoJSON in the layout the C++ program wrote: a `StartPoint`
+feature (the point as given) and an `AccessibleArea` MultiPoint of cell
+centres, with the same names and marker styles, so existing tools such as
+`scripts/qgis_scripts/rb_r2pop_qgis.py` read it. Its properties add the
+point count, cell size, radius and datasets, and where the search started
+if the point was moved to the nearest road. A 75 km search gives on the
+order of 100,000 points, a few megabytes.
+
+That is too large for a D1 row, so it is built in the background and kept
+in R2:
+
+1. `POST /api/analyses/{id}/detail` (or `/api/batches/{id}/detail` for every
+   finished site of a batch) marks it `queued` and sends a message to the
+   `rb-road-network-details` queue, then answers at once with 202.
+2. The queue consumer, the `queue` method in the same Worker, runs the
+   search again against the datasets the stored result used, writes
+   `details/{id}.geojson` to the `rb-road-network-details` bucket and marks
+   it `done` (or `failed`, with the reason).
+3. `GET /api/analyses/{id}/detail` shows the state; the record from
+   `GET /api/analyses/{id}` carries it too as `detail`.
+   `GET /api/analyses/{id}/detail.geojson` returns the file once it is done
+   (409 before then).
+
+Asking again while a job is queued, running or done does nothing; a failed
+one is queued again, and so is one stuck for over an hour (a job killed at
+the CPU limit after its last retry). Deleting an analysis or batch deletes
+its files.
+
+```bash
+curl -X POST "http://localhost:8787/api/analyses/<id>/detail"
+curl "http://localhost:8787/api/analyses/<id>/detail"
+curl -o detail.geojson "http://localhost:8787/api/analyses/<id>/detail.geojson"
+```
+
+`pywrangler dev` runs the queue and bucket locally, so this works on the
+development server without any setup.
+
 A sites CSV for a batch needs a header row with `site, lat, lon` (the legacy
 batch format). Optional `radius_m`, `tons_per_person` and `min_km2` columns
 override the batch-wide values for a row. A batch holds at most 500 sites.
@@ -188,6 +231,24 @@ that token. The client sends it from `RB_ACCESS_CLIENT_ID` and
 
 If Access is later switched off for this Worker, the API is open to anyone
 with the address; the Worker does not check the sign-in itself.
+
+### Detailed results: one-time setup
+
+Detailed results need an R2 bucket and a queue (R2 must be enabled on the
+account first: dashboard, R2). Create both, apply the migration that adds
+the detail columns, then deploy:
+
+```bash
+uv run pywrangler r2 bucket create rb-road-network-details
+uv run pywrangler queues create rb-road-network-details
+uv run pywrangler d1 migrations apply DB --remote
+uv run pywrangler deploy
+```
+
+The queue consumer has the same CPU limit as requests (`limits.cpu_ms`).
+Building the file adds well under a second to the search for 75 km;
+at the 300 km maximum it can take tens of seconds, so raise the limit (up to
+300000) if those fail.
 
 ### Updating a deployment
 
