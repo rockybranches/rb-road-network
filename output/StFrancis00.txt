@@ -1,0 +1,27 @@
+\begin{tabular}{r|*{6}{l}}
+County & State & 2010 & 2015 & 2020 & 2025 & 2030 \\ 
+\hline
+Bollinger & MO & 12260 & 12403 & 12555 & 12683 & 12805\\ 
+Butler & MO & 41489 & 41594 & 41613 & 41577 & 41491\\ 
+Carter & MO & 5911 & 5933 & 5936 & 5905 & 5837\\ 
+Clay & AR & 15931 & 15200 & 14472 & 13849 & 13253\\ 
+Dunklin & MO & 31363 & 30575 & 29870 & 29277 & 28765\\ 
+New Madrid & MO & 16972 & 15764 & 14621 & 13549 & 12554\\ 
+Pemiscot & MO & 18455 & 17856 & 17324 & 16839 & 16447\\ 
+Ripley & MO & 13715 & 13887 & 14003 & 14024 & 14008\\ 
+Scott & MO & 40646 & 40797 & 40948 & 41022 & 41076\\ 
+Stoddard & MO & 29599 & 29504 & 29374 & 29186 & 28973\\ 
+Wayne & MO & 12693 & 12378 & 12001 & 11594 & 11200\\ 
+\\ 
+\hline\hline
+    Totals = &  & 239034 & 235891 & 232717 & 229505 & 226409\newline
+\end{tabular} \\ 
+\begin{tabular}{l|l}
+\hline\hline
+\newline
+ Population increase (2015 to 2030) & -9482 \\ 
+ Percent population increase & -4.0 \\ 
+ Tons needed by market (2015) & 1061509.500  (4.500 tons/person) \\ 
+ Tons needed by market (2030) & 1018840.500  (4.500 tons/person) \\ 
+ Increase in tons needed (2015 to 2030) & -42669.000 \\ 
+\end{tabular}
