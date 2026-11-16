@@ -510,12 +510,6 @@ wheels = [
 ]
 
 [[package]]
-name = "gdal"
-version = "3.12.0.post1"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/95/fc/9d187c4d280122b497c2d4c25a1c3b1ba50e5e1836924e49323685999c43/gdal-3.12.0.post1.tar.gz", hash = "sha256:d2b68361c7cf2ef7caa8cbb8549a315080301564e3f025d1842df71a4e406236", size = 902365, upload-time = "2025-11-07T23:40:07.734Z" }
-
-[[package]]
 name = "geographiclib"
 version = "2.1"
 source = { registry = "https://pypi.org/simple" }
@@ -1899,6 +1893,7 @@ version = "0.2.0"
 source = { editable = "." }
 dependencies = [
     { name = "click" },
+    { name = "geopandas" },
 ]
 
 [package.optional-dependencies]
@@ -1912,7 +1907,6 @@ ingest = [
 ]
 scripts = [
     { name = "aria2p" },
-    { name = "gdal" },
     { name = "geopandas" },
     { name = "geopy" },
     { name = "ipython" },
@@ -1930,7 +1924,7 @@ scripts = [
 requires-dist = [
     { name = "aria2p", marker = "extra == 'scripts'", specifier = ">=0.12.1" },
     { name = "click", specifier = ">=8.3.1" },
-    { name = "gdal", marker = "extra == 'scripts'", specifier = "<3.12.1" },
+    { name = "geopandas", specifier = ">=1.1.2" },
     { name = "geopandas", marker = "extra == 'scripts'", specifier = ">=1.1.2" },
     { name = "geopy", marker = "extra == 'scripts'", specifier = ">=2.4.1" },
     { name = "ipython", marker = "extra == 'scripts'", specifier = ">=9.8.0" },
