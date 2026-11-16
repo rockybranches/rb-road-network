@@ -7,7 +7,11 @@
 		"python_workers"
 	],
 	"observability": {
-		"enabled": true
+		"enabled": true,
+		"issues": {
+			"enabled": true
+		},
+		"issues__deleted": {}
 	},
 	// The API has no login of its own. The workers.dev address is on only
 	// because Cloudflare Access protects this Worker (see "Deploying" in
@@ -67,6 +71,8 @@
 				"max_batch_timeout": 1,
 				"max_retries": 2
 			}
-		]
-	}
+		],
+		"consumers__added": []
+	},
+	"assets__added": {}
 }

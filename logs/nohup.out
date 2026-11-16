@@ -334,3 +334,107 @@ env.COUNTIES_DATASET ("tl-2016")                           Environment Variable 
 [wrangler:info] GET /api/batches 200 OK (10ms)
 [wrangler:info] GET /api/analyses 200 OK (10ms)
 [wrangler:info] Ready on http://localhost:8788
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProcessing wrangler.jsonc configuration:[0m
+
+    - Unexpected fields found in queues field: "consumers__added"
+    - Unexpected fields found in observability field: "issues__deleted"
+    - Unexpected fields found in top-level field: "assets__added"
+
+
+Your Worker has access to the following bindings:
+Binding                                                    Resource                  Mode
+env.DETAIL_QUEUE (rb-road-network-details)                 Queue                     local
+env.DB (rb-road-network)                                   D1 Database               local
+env.DETAILS (rb-road-network-details)                      R2 Bucket                 local
+env.rb_road_network_details (rb-road-network-details)      R2 Bucket                 local
+env.ROADS_DATASET ("osm-2026-11")                          Environment Variable      local
+env.COUNTIES_DATASET ("tl-2016")                           Environment Variable      local
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProcessing wrangler.jsonc configuration:[0m
+
+    - Unexpected fields found in queues field: "consumers__added"
+    - Unexpected fields found in observability field: "issues__deleted"
+    - Unexpected fields found in top-level field: "assets__added"
+
+
+Your Worker has access to the following bindings:
+Binding                                                    Resource                  Mode
+env.DETAIL_QUEUE (rb-road-network-details)                 Queue                     local
+env.DB (rb-road-network)                                   D1 Database               local
+env.DETAILS (rb-road-network-details)                      R2 Bucket                 local
+env.rb_road_network_details (rb-road-network-details)      R2 Bucket                 local
+env.ROADS_DATASET ("osm-2026-11")                          Environment Variable      local
+env.COUNTIES_DATASET ("tl-2016")                           Environment Variable      local
+
+Attaching additional modules:
+Attaching additional modules:
+┌────────────────────┬────────┬────────────┐
+│ Name               │ Type   │ Size       │
+├────────────────────┼────────┼────────────┤
+│ rbnet/__init__.py  │ python │ 0.00 KiB   │
+├────────────────────┼────────┼────────────┤
+│ rbnet/analysis.py  │ python │ 6.19 KiB   │
+├────────────────────┼────────┼────────────┤
+│ rbnet/area.py      │ python │ 4.58 KiB   │
+├────────────────────┼────────┼────────────┤
+│ rbnet/detail.py    │ python │ 3.52 KiB   │
+├────────────────────┼────────┼────────────┤
+│ rbnet/grid.py      │ python │ 3.85 KiB   │
+├────────────────────┼────────┼────────────┤
+│ rbnet/params.py    │ python │ 5.98 KiB   │
+├────────────────────┼────────┼────────────┤
+│ rbnet/reach.py     │ python │ 4.31 KiB   │
+├────────────────────┼────────┼────────────┤
+│ rbnet/report.py    │ python │ 3.57 KiB   │
+├────────────────────┼────────┼────────────┤
+│ Vendored Modules   │        │ 111.75 KiB │
+├────────────────────┼────────┼────────────┤
+│ Total (40 modules) │        │ 143.74 KiB │
+└────────────────────┴────────┴────────────┘
+┌────────────────────┬────────┬────────────┐
+│ Name               │ Type   │ Size       │
+├────────────────────┼────────┼────────────┤
+│ rbnet/__init__.py  │ python │ 0.00 KiB   │
+├────────────────────┼────────┼────────────┤
+│ rbnet/analysis.py  │ python │ 6.19 KiB   │
+├────────────────────┼────────┼────────────┤
+│ rbnet/area.py      │ python │ 4.58 KiB   │
+├────────────────────┼────────┼────────────┤
+│ rbnet/detail.py    │ python │ 3.52 KiB   │
+├────────────────────┼────────┼────────────┤
+│ rbnet/grid.py      │ python │ 3.85 KiB   │
+├────────────────────┼────────┼────────────┤
+│ rbnet/params.py    │ python │ 5.98 KiB   │
+├────────────────────┼────────┼────────────┤
+│ rbnet/reach.py     │ python │ 4.31 KiB   │
+├────────────────────┼────────┼────────────┤
+│ rbnet/report.py    │ python │ 3.57 KiB   │
+├────────────────────┼────────┼────────────┤
+│ Vendored Modules   │        │ 111.75 KiB │
+├────────────────────┼────────┼────────────┤
+│ Total (40 modules) │        │ 143.74 KiB │
+└────────────────────┴────────┴────────────┘
+⎔ Reloading local server...
+⎔ Reloading local server...
+⎔ Local server updated and ready
+⎔ Connection status updated
+Your Worker has access to the following bindings:
+Binding                                                    Resource                  Mode
+⎔ Connection status updated
+env.DETAIL_QUEUE (rb-road-network-details)                 Queue                     local
+env.DB (rb-road-network)                                   D1 Database               local
+env.DETAILS (rb-road-network-details)                      R2 Bucket                 local
+env.rb_road_network_details (rb-road-network-details)      R2 Bucket                 local
+Your Worker has access to the following bindings:
+Binding                                                    Resource                  Mode
+env.ROADS_DATASET ("osm-2026-11")                          Environment Variable      local
+env.DETAIL_QUEUE (rb-road-network-details)                 Queue                     local
+env.COUNTIES_DATASET ("tl-2016")                           Environment Variable      local
+env.DB (rb-road-network)                                   D1 Database               local
+
+env.DETAILS (rb-road-network-details)                      R2 Bucket                 local
+env.rb_road_network_details (rb-road-network-details)      R2 Bucket                 local
+env.ROADS_DATASET ("osm-2026-11")                          Environment Variable      local
+env.COUNTIES_DATASET ("tl-2016")                           Environment Variable      local
+
+⎔ Local server updated and ready
