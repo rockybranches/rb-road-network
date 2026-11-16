@@ -1,0 +1,336 @@
+Resolved 18 packages in 2ms
+Checked 15 packages in 1ms
+INFO     Passing command to npx wrangler: npx --yes wrangler d1 migrations apply
+         DB --local                                                             
+npm notice run npx
+npm notice run 'wrangler' d1 migrations apply DB --local
+
+ ⛅️ wrangler 4.163.0
+────────────────────
+Resource location: local 
+
+Use --remote if you want to access the remote instance.
+
+Migrations to be applied:
+┌───────────────────────┐
+│ name                  │
+├───────────────────────┤
+│ 0001_raster_tiles.sql │
+├───────────────────────┤
+│ 0002_counties.sql     │
+├───────────────────────┤
+│ 0003_analyses.sql     │
+├───────────────────────┤
+│ 0004_details.sql      │
+└───────────────────────┘
+? About to apply 4 migration(s)
+Your database may not be available to serve requests during the migration, continue?
+🤖 Using fallback value in non-interactive context: yes
+🌀 Executing on local database DB (fb2aeb0d-15fd-448a-b053-ecc3b4e2198a) from .wrangler/state/v3/d1:
+🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+🚣 2 commands executed successfully.
+┌───────────────────────┬────────┐
+│ name                  │ status │
+├───────────────────────┼────────┤
+│ 0001_raster_tiles.sql │ ✅     │
+├───────────────────────┼────────┤
+│ 0002_counties.sql     │ 🕒️    │
+├───────────────────────┼────────┤
+│ 0003_analyses.sql     │ 🕒️    │
+├───────────────────────┼────────┤
+│ 0004_details.sql      │ 🕒️    │
+└───────────────────────┴────────┘
+🌀 Executing on local database DB (fb2aeb0d-15fd-448a-b053-ecc3b4e2198a) from .wrangler/state/v3/d1:
+🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+🚣 3 commands executed successfully.
+┌───────────────────────┬────────┐
+│ name                  │ status │
+├───────────────────────┼────────┤
+│ 0001_raster_tiles.sql │ ✅     │
+├───────────────────────┼────────┤
+│ 0002_counties.sql     │ ✅     │
+├───────────────────────┼────────┤
+│ 0003_analyses.sql     │ 🕒️    │
+├───────────────────────┼────────┤
+│ 0004_details.sql      │ 🕒️    │
+└───────────────────────┴────────┘
+🌀 Executing on local database DB (fb2aeb0d-15fd-448a-b053-ecc3b4e2198a) from .wrangler/state/v3/d1:
+🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+🚣 5 commands executed successfully.
+┌───────────────────────┬────────┐
+│ name                  │ status │
+├───────────────────────┼────────┤
+│ 0001_raster_tiles.sql │ ✅     │
+├───────────────────────┼────────┤
+│ 0002_counties.sql     │ ✅     │
+├───────────────────────┼────────┤
+│ 0003_analyses.sql     │ ✅     │
+├───────────────────────┼────────┤
+│ 0004_details.sql      │ 🕒️    │
+└───────────────────────┴────────┘
+🌀 Executing on local database DB (fb2aeb0d-15fd-448a-b053-ecc3b4e2198a) from .wrangler/state/v3/d1:
+🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+🚣 7 commands executed successfully.
+┌───────────────────────┬────────┐
+│ name                  │ status │
+├───────────────────────┼────────┤
+│ 0001_raster_tiles.sql │ ✅     │
+├───────────────────────┼────────┤
+│ 0002_counties.sql     │ ✅     │
+├───────────────────────┼────────┤
+│ 0003_analyses.sql     │ ✅     │
+├───────────────────────┼────────┤
+│ 0004_details.sql      │ ✅     │
+└───────────────────────┴────────┘
+INFO     Passing command to npx wrangler: npx --yes wrangler d1 execute DB      
+         --local --file ../build/d1/.sql                                        
+npm notice run npx
+npm notice run 'wrangler' d1 execute DB --local --file ../build/d1/.sql
+
+ ⛅️ wrangler 4.163.0
+────────────────────
+Resource location: local 
+
+Use --remote if you want to access the remote instance.
+
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mUnable to read SQL text file "../build/d1/.sql". Please check the file path and try again.[0m
+
+
+🪵  Logs were written to "/home/robbiec/.config/.wrangler/logs/wrangler-2026-11-16_20-22-13_985.log"
+INFO     Passing command to npx wrangler: npx --yes wrangler d1 execute DB      
+         --local --file ../build/d1/.sql                                        
+npm notice run npx
+npm notice run 'wrangler' d1 execute DB --local --file ../build/d1/.sql
+
+ ⛅️ wrangler 4.163.0
+────────────────────
+Resource location: local 
+
+Use --remote if you want to access the remote instance.
+
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mUnable to read SQL text file "../build/d1/.sql". Please check the file path and try again.[0m
+
+
+🪵  Logs were written to "/home/robbiec/.config/.wrangler/logs/wrangler-2026-11-16_20-22-16_389.log"
+INFO     Passing command to npx wrangler: npx --yes wrangler d1 execute DB      
+         --local --file ../build/d1/.sql                                        
+npm notice run npx
+npm notice run 'wrangler' d1 execute DB --local --file ../build/d1/.sql
+
+ ⛅️ wrangler 4.163.0
+────────────────────
+Resource location: local 
+
+Use --remote if you want to access the remote instance.
+
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mUnable to read SQL text file "../build/d1/.sql". Please check the file path and try again.[0m
+
+
+🪵  Logs were written to "/home/robbiec/.config/.wrangler/logs/wrangler-2026-11-16_20-22-18_790.log"
+INFO     Passing command to npx wrangler: npx --yes wrangler dev                
+npm notice run npx
+npm notice run 'wrangler' dev
+
+ ⛅️ wrangler 4.163.0
+────────────────────
+
+Cloudflare collects anonymous telemetry about your usage of Wrangler. Learn more at https://github.com/cloudflare/workers-sdk/tree/main/packages/wrangler/telemetry.md
+Your Worker has access to the following bindings:
+Binding                                                    Resource                  Mode
+env.DETAIL_QUEUE (rb-road-network-details)                 Queue                     local
+env.DB (rb-road-network)                                   D1 Database               local
+env.DETAILS (rb-road-network-details)                      R2 Bucket                 local
+env.rb_road_network_details (rb-road-network-details)      R2 Bucket                 local
+env.ROADS_DATASET ("osm-2026-11")                          Environment Variable      local
+env.COUNTIES_DATASET ("tl-2016")                           Environment Variable      local
+
+Attaching additional modules:
+┌────────────────────┬────────┬────────────┐
+│ Name               │ Type   │ Size       │
+├────────────────────┼────────┼────────────┤
+│ rbnet/__init__.py  │ python │ 0.00 KiB   │
+├────────────────────┼────────┼────────────┤
+│ rbnet/analysis.py  │ python │ 6.19 KiB   │
+├────────────────────┼────────┼────────────┤
+│ rbnet/area.py      │ python │ 4.58 KiB   │
+├────────────────────┼────────┼────────────┤
+│ rbnet/detail.py    │ python │ 3.52 KiB   │
+├────────────────────┼────────┼────────────┤
+│ rbnet/grid.py      │ python │ 3.85 KiB   │
+├────────────────────┼────────┼────────────┤
+│ rbnet/params.py    │ python │ 5.98 KiB   │
+├────────────────────┼────────┼────────────┤
+│ rbnet/reach.py     │ python │ 4.31 KiB   │
+├────────────────────┼────────┼────────────┤
+│ rbnet/report.py    │ python │ 3.57 KiB   │
+├────────────────────┼────────┼────────────┤
+│ Vendored Modules   │        │ 111.75 KiB │
+├────────────────────┼────────┼────────────┤
+│ Total (40 modules) │        │ 143.74 KiB │
+└────────────────────┴────────┴────────────┘
+⎔ Starting local server...
+⎔ Connection status updated
+Your Worker has access to the following bindings:
+Binding                                                    Resource                  Mode
+env.DETAIL_QUEUE (rb-road-network-details)                 Queue                     local
+env.DB (rb-road-network)                                   D1 Database               local
+env.DETAILS (rb-road-network-details)                      R2 Bucket                 local
+env.rb_road_network_details (rb-road-network-details)      R2 Bucket                 local
+env.ROADS_DATASET ("osm-2026-11")                          Environment Variable      local
+env.COUNTIES_DATASET ("tl-2016")                           Environment Variable      local
+
+[wrangler:info] Ready on http://localhost:8787
+[wrangler:info] GET /api/analyses/St%20Francis 404 Not Found (31ms)
+[wrangler:info] GET /api/status 200 OK (31ms)
+[wrangler:info] POST /api/analyses 400 Bad Request (11ms)
+[wrangler:info] GET / 200 OK (5ms)
+[wrangler:info] GET /app.css 200 OK (4ms)
+[wrangler:info] GET /app.js 200 OK (5ms)
+[wrangler:info] GET /api/status 200 OK (11ms)
+[wrangler:info] GET /api/analyses 200 OK (8ms)
+[wrangler:info] GET /api/batches 200 OK (10ms)
+[wrangler:info] GET /api/batches 200 OK (10ms)
+[wrangler:info] POST /api/batches 201 Created (30ms)
+[wrangler:info] POST /api/analyses/a9cc93e968565897/run 200 OK (18ms)
+[wrangler:info] GET /api/batches/ceff37f7293c44f6/summary.csv 200 OK (11ms)
+[wrangler:info] GET /api/batches 200 OK (9ms)
+[wrangler:info] GET /api/analyses 200 OK (13ms)
+[wrangler:info] GET / 304 Not Modified (10ms)
+[wrangler:info] GET /app.js 304 Not Modified (4ms)
+[wrangler:info] GET /app.css 304 Not Modified (5ms)
+[wrangler:info] GET /api/status 200 OK (17ms)
+[wrangler:info] GET /api/analyses 200 OK (11ms)
+[wrangler:info] POST /api/analyses 400 Bad Request (9ms)
+[wrangler:info] POST /api/analyses 400 Bad Request (9ms)
+[wrangler:info] GET / 304 Not Modified (3ms)
+[wrangler:info] GET /app.css 304 Not Modified (3ms)
+[wrangler:info] GET /app.js 304 Not Modified (3ms)
+[wrangler:info] GET /api/status 200 OK (11ms)
+[wrangler:info] POST /api/analyses 400 Bad Request (11ms)
+Resolved 18 packages in 0.63ms
+Checked 15 packages in 0.18ms
+INFO     Passing command to npx wrangler: npx --yes wrangler d1 migrations apply
+         DB --local                                                             
+npm notice run npx
+npm notice run 'wrangler' d1 migrations apply DB --local
+
+ ⛅️ wrangler 4.163.0
+────────────────────
+Resource location: local 
+
+Use --remote if you want to access the remote instance.
+
+✅ No migrations to apply!
+INFO     Passing command to npx wrangler: npx --yes wrangler d1 execute DB      
+         --local --file ../build/d1/.sql                                        
+npm notice run npx
+npm notice run 'wrangler' d1 execute DB --local --file ../build/d1/.sql
+
+ ⛅️ wrangler 4.163.0
+────────────────────
+Resource location: local 
+
+Use --remote if you want to access the remote instance.
+
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mUnable to read SQL text file "../build/d1/.sql". Please check the file path and try again.[0m
+
+
+🪵  Logs were written to "/home/robbiec/.config/.wrangler/logs/wrangler-2026-11-16_20-47-03_797.log"
+INFO     Passing command to npx wrangler: npx --yes wrangler d1 execute DB      
+         --local --file ../build/d1/.sql                                        
+npm notice run npx
+npm notice run 'wrangler' d1 execute DB --local --file ../build/d1/.sql
+
+ ⛅️ wrangler 4.163.0
+────────────────────
+Resource location: local 
+
+Use --remote if you want to access the remote instance.
+
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mUnable to read SQL text file "../build/d1/.sql". Please check the file path and try again.[0m
+
+
+🪵  Logs were written to "/home/robbiec/.config/.wrangler/logs/wrangler-2026-11-16_20-47-06_077.log"
+INFO     Passing command to npx wrangler: npx --yes wrangler d1 execute DB      
+         --local --file ../build/d1/.sql                                        
+npm notice run npx
+npm notice run 'wrangler' d1 execute DB --local --file ../build/d1/.sql
+
+ ⛅️ wrangler 4.163.0
+────────────────────
+Resource location: local 
+
+Use --remote if you want to access the remote instance.
+
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mUnable to read SQL text file "../build/d1/.sql". Please check the file path and try again.[0m
+
+
+🪵  Logs were written to "/home/robbiec/.config/.wrangler/logs/wrangler-2026-11-16_20-47-08_433.log"
+[wrangler:info] GET / 304 Not Modified (6ms)
+[wrangler:info] GET /app.css 304 Not Modified (3ms)
+[wrangler:info] GET /app.js 304 Not Modified (3ms)
+[wrangler:info] GET /api/status 200 OK (12ms)
+[wrangler:info] GET / 304 Not Modified (4ms)
+[wrangler:info] GET /app.css 304 Not Modified (3ms)
+[wrangler:info] GET /app.js 304 Not Modified (4ms)
+[wrangler:info] GET /api/status 200 OK (11ms)
+INFO     Passing command to npx wrangler: npx --yes wrangler dev                
+[wrangler:info] POST /api/analyses 400 Bad Request (8ms)
+npm notice run npx
+npm notice run 'wrangler' dev
+
+ ⛅️ wrangler 4.163.0
+────────────────────
+Your Worker has access to the following bindings:
+Binding                                                    Resource                  Mode
+env.DETAIL_QUEUE (rb-road-network-details)                 Queue                     local
+env.DB (rb-road-network)                                   D1 Database               local
+env.DETAILS (rb-road-network-details)                      R2 Bucket                 local
+env.rb_road_network_details (rb-road-network-details)      R2 Bucket                 local
+env.ROADS_DATASET ("osm-2026-11")                          Environment Variable      local
+env.COUNTIES_DATASET ("tl-2016")                           Environment Variable      local
+
+Attaching additional modules:
+┌────────────────────┬────────┬────────────┐
+│ Name               │ Type   │ Size       │
+├────────────────────┼────────┼────────────┤
+│ rbnet/__init__.py  │ python │ 0.00 KiB   │
+├────────────────────┼────────┼────────────┤
+│ rbnet/analysis.py  │ python │ 6.19 KiB   │
+├────────────────────┼────────┼────────────┤
+│ rbnet/area.py      │ python │ 4.58 KiB   │
+├────────────────────┼────────┼────────────┤
+│ rbnet/detail.py    │ python │ 3.52 KiB   │
+├────────────────────┼────────┼────────────┤
+│ rbnet/grid.py      │ python │ 3.85 KiB   │
+├────────────────────┼────────┼────────────┤
+│ rbnet/params.py    │ python │ 5.98 KiB   │
+├────────────────────┼────────┼────────────┤
+│ rbnet/reach.py     │ python │ 4.31 KiB   │
+├────────────────────┼────────┼────────────┤
+│ rbnet/report.py    │ python │ 3.57 KiB   │
+├────────────────────┼────────┼────────────┤
+│ Vendored Modules   │        │ 111.75 KiB │
+├────────────────────┼────────┼────────────┤
+│ Total (40 modules) │        │ 143.74 KiB │
+└────────────────────┴────────┴────────────┘
+⎔ Starting local server...
+⎔ Connection status updated
+Your Worker has access to the following bindings:
+Binding                                                    Resource                  Mode
+env.DETAIL_QUEUE (rb-road-network-details)                 Queue                     local
+env.DB (rb-road-network)                                   D1 Database               local
+env.DETAILS (rb-road-network-details)                      R2 Bucket                 local
+env.rb_road_network_details (rb-road-network-details)      R2 Bucket                 local
+env.ROADS_DATASET ("osm-2026-11")                          Environment Variable      local
+env.COUNTIES_DATASET ("tl-2016")                           Environment Variable      local
+
+[wrangler:info] GET /api/batches 200 OK (10ms)
+[wrangler:info] GET /api/analyses 200 OK (10ms)
+[wrangler:info] Ready on http://localhost:8788

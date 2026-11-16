@@ -17,14 +17,24 @@ and population data from a D1 database. There are two ways to use it:
 
 ## Layout
 
-| Path | What it is |
-|---|---|
-| `worker/` | The Worker: API, analysis engine, map page, D1 schema. See [worker/README.md](worker/README.md) for running, loading data and deploying. |
-| `rb_road_network/` | The command-line client. |
-| `tools/ingest/` | Local tools that turn road shapefiles, county boundaries and population CSVs into the SQL loaded into D1. |
-| `scripts/` | Older helpers for downloading and converting source data. |
-| `resources/` | QGIS styles, source lists and other reference files. |
-| `output/` | Results from the earlier C++ program, kept for comparison. |
+| Path               | What it is                                                                                                                               |
+|--------------------|------------------------------------------------------------------------------------------------------------------------------------------|
+| `worker/`          | The Worker: API, analysis engine, map page, D1 schema. See [worker/README.md](worker/README.md) for running, loading data and deploying. |
+| `rb_road_network/` | The command-line client.                                                                                                                 |
+| `tools/ingest/`    | Local tools that turn road shapefiles, county boundaries and population CSVs into the SQL loaded into D1.                                |
+| `scripts/`         | Older helpers for downloading and converting source data.                                                                                |
+| `resources/`       | QGIS styles, source lists and other reference files.                                                                                     |
+| `output/`          | Results from the earlier C++ program, kept for comparison.                                                                               |
+
+## Local server (dev)
+
+First, setup the required datasets (if not already done) and start the server.
+
+```bash
+./scripts/build_data.sh            # setup the required datasets (run once locally)
+
+./scripts/run_worker_locally.sh    # start the local server (wrangler dev server)
+```
 
 ## Command-line client
 
