@@ -307,7 +307,7 @@ $("#dl-map-png").addEventListener("click", async (event) => {
     );
   } finally {
     button.disabled = false;
-    button.textContent = "Rendered Map (png)";
+    button.textContent = "Map image (PNG)";
   }
 });
 

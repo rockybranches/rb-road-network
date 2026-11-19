@@ -1,29 +1,33 @@
+/* Colours, type and shape are inherited from github.com/rockybranches/rb-brand (tokens.css).
+   Change them there, then copy the change here. */
 :root {
-  --bg: #ffffff;
-  --panel: #f5f6f8;
-  --text: #1c2330;
-  --muted: #5f6b7a;
-  --line: #d6dbe2;
-  --accent: #1f5fae;
+  --bg: #fffdf9;
+  --panel: #efebe3;
+  --text: #1b211f;
+  --muted: #626b66;
+  --line: #ddd7cb;
+  --accent: #14524b;
   --accent-text: #ffffff;
-  --danger: #b3261e;
-  --warn-bg: #fff4d6;
+  --copper: #a8501c;
+  --danger: #a3271f;
+  --warn-bg: #fbf0d4;
   --warn-text: #5c4300;
   color-scheme: light dark;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #161a21;
-    --panel: #1f242d;
-    --text: #e6e9ee;
-    --muted: #9aa5b4;
-    --line: #353c48;
-    --accent: #6ea8ff;
-    --accent-text: #0d1117;
-    --danger: #ff8a80;
-    --warn-bg: #3d3210;
-    --warn-text: #ffe08a;
+    --bg: #1a201e;
+    --panel: #232b28;
+    --text: #e9ece8;
+    --muted: #8f9a94;
+    --line: #323c38;
+    --accent: #6fc7b8;
+    --accent-text: #0b1f1c;
+    --copper: #e0a060;
+    --danger: #f08a80;
+    --warn-bg: #3a2e12;
+    --warn-text: #f0cf8a;
   }
 }
 
@@ -48,7 +52,12 @@ body {
 
 #map { min-height: 0; background: var(--panel); }
 
-h1 { font-size: 18px; margin: 0 0 2px; }
+h1 { font-size: 18px; margin: 0; letter-spacing: -0.01em; }
+.brand { display: flex; align-items: center; gap: 10px; margin-bottom: 2px; }
+.rb-mark { width: 30px; height: 30px; flex: none; }
+.rb-mark .rock { fill: var(--accent); }
+.rb-mark .branch { stroke: var(--copper); }
+.rb-mark .node { fill: var(--copper); }
 h2 { font-size: 15px; margin: 20px 0 6px; }
 p { margin: 6px 0; }
 
@@ -133,7 +142,7 @@ input:focus-visible, button:focus-visible, .button:focus-visible, .list button:f
   margin: 12px 0;
 }
 
-.stats div { background: var(--panel); border-radius: 8px; padding: 8px 10px; }
+.stats div { background: var(--panel); border-radius: 10px; padding: 8px 10px; }
 .stats dt { color: var(--muted); font-size: 12px; }
 .stats dd { margin: 0; font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; }
 
