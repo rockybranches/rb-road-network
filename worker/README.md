@@ -168,6 +168,13 @@ A sites CSV for a batch needs a header row with `site, lat, lon` (the legacy
 batch format). Optional `radius_m`, `tons_per_person` and `min_km2` columns
 override the batch-wide values for a row. A batch holds at most 500 sites.
 
+## Branding
+
+The colours, logo and favicon of the web page are inherited from [rb-brand](https://github.com/rockybranches/rb-brand), the
+single source for Rocky Branches branding. They are embedded in `public/app.css` and
+`public/index.html`. To change the look, change rb-brand first, then copy the new values
+into those files. The distance-band colours on the map are this app's own.
+
 ## Tests
 
 ```bash

@@ -1,5 +1,5 @@
-/* Colours, type and shape follow the Rocky Branches design tokens
-   (rockybranches.github.io/static/brand/tokens.css). */
+/* Colours, type and shape are inherited from github.com/rockybranches/rb-brand (tokens.css).
+   Change them there, then copy the change here. */
 :root {
   --bg: #fffdf9;
   --panel: #efebe3;
