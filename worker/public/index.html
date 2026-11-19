@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Market area by road distance</title>
-  <link rel="icon" href="data:,">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='11' fill='%2314524b'/%3E%3Cpath fill='%23f7f5f0' d='M6 40 16.5 26.5 24 34l7-10L42 40z'/%3E%3Cg fill='none' stroke='%23e8a765' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M24 33V13M24 27l-8-8v-3M24 22l7.5-7.5'/%3E%3C/g%3E%3Cg fill='%23e8a765'%3E%3Ccircle cx='24' cy='10' r='3.4'/%3E%3Ccircle cx='16' cy='13' r='3.4'/%3E%3Ccircle cx='33' cy='13' r='3.4'/%3E%3C/g%3E%3C/svg%3E">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
   <link rel="stylesheet" href="/app.css">
@@ -12,7 +12,10 @@
 <body>
   <aside id="side">
     <header>
-      <h1>Market area by road distance</h1>
+      <div class="brand">
+        <svg class="rb-mark" viewBox="0 0 48 48" aria-hidden="true" focusable="false"><path class="rock" d="M3 43 15.5 26.5 24 35l8-11.5L45 43z"/><g class="branch" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M24 34V11"/><path d="M24 27.5 14.5 18v-4"/><path d="M24 22l8.5-8.5"/></g><g class="node"><circle cx="24" cy="8" r="3.4"/><circle cx="14.5" cy="11" r="3.4"/><circle cx="34.5" cy="11.5" r="3.4"/></g></svg>
+        <h1>Market area by road distance</h1>
+      </div>
       <p id="datasets" class="muted"></p>
     </header>
 
