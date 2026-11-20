@@ -27,6 +27,8 @@ sites from a CSV.
 
 - `src/entry.py` — Worker entrypoint; the route list is at the top of the file
 - `public/` — the map page (static files, served without running the Worker)
+- `public/vendor/` — the built [rb-viz](https://github.com/rockybranches/rb-viz)
+  files the map page draws with (see "Shared map components" below)
 - `src/rbnet/grid.py` — the national grid and projection
 - `src/rbnet/reach.py` — the search
 - `src/rbnet/analysis.py` — reachability plus the per-county roll-up
@@ -182,10 +184,32 @@ D1 database, and is skipped until that database has been built.
 `rb-road-network` in the repo root sends the same requests as the map page
 and saves the report files; see the [root README](../README.md).
 
+## Shared map components
+
+The map page does not have its own map code or colours. The basemap, the
+reachable area in distance bands with its legend, the start point with its
+name, the "Zoom to area" button, the map PNG, the stat tiles and the light and
+dark colours come from [rb-viz](https://github.com/rockybranches/rb-viz), the
+library shared by the rockybranches projects. `public/app.js` and
+`public/app.css` hold only what is particular to this page: the forms, tabs,
+tables, batches and the page layout.
+
+rb-viz is copied in, not installed: `public/vendor/rb-viz.js` and
+`public/vendor/rb-viz.css` are its built files, deployed with the rest of
+`public/`, and `public/vendor/RB_VIZ_VERSION` names the commit they came from.
+To update them:
+
+```bash
+scripts/sync-rb-viz.sh              # from ../../rb-viz (cloned from GitHub if absent), at origin/master
+scripts/sync-rb-viz.sh PATH REV     # another checkout or commit
+```
+
+Do not edit the files in `public/vendor/`; change rb-viz and sync again.
+
 ## Continuous integration
 
 `.github/workflows/ci.yml` runs these tests, the command-line client's tests,
-a syntax check of the map page script and a dry-run bundle of the Worker on
+a syntax check of the map page scripts and a dry-run bundle of the Worker on
 every push and pull request. It does not deploy; `.github/workflows/deploy.yml`
 does, when started by hand (see "Updating a deployment").
 

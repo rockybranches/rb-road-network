@@ -25,8 +25,8 @@ jobs:
       # test_golden.py is skipped here: it needs the local D1 database,
       # which is built from data that is not in the repository.
       - run: uv run pytest tests ../tools/ingest/tests
-      - name: Check the map page script parses
-        run: node --check public/app.js
+      - name: Check the map page scripts parse
+        run: node --check public/app.js && node --check public/vendor/rb-viz.js
       - name: Check the Worker bundles
         run: uv run pywrangler deploy --dry-run
 

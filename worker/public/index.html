@@ -7,6 +7,7 @@
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <link rel="stylesheet" href="/vendor/rb-viz.css">
   <link rel="stylesheet" href="/app.css">
 </head>
 <body>
@@ -58,7 +59,7 @@
         <h2 id="result-title"></h2>
         <p id="result-meta" class="muted"></p>
         <ul id="result-warnings" class="warnings"></ul>
-        <dl id="result-stats" class="stats"></dl>
+        <div id="result-stats"></div>
         <div class="actions">
           <a id="dl-tex" class="button" download>LaTeX table</a>
           <a id="dl-geojson" class="button" download>Area GeoJSON</a>
@@ -128,6 +129,7 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
           integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="/vendor/rb-viz.js"></script>
   <script src="/app.js"></script>
 </body>
 </html>
