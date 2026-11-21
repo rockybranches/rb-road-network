@@ -6,13 +6,25 @@
 	"compatibility_flags": [
 		"python_workers"
 	],
-	"observability": {
-		"enabled": true,
-		"issues": {
-			"enabled": true
-		},
-		"issues__deleted": {}
-	},
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1,
+    "redact_query_string": false,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "invocation_logs": true,
+      "persist": true
+    },
+    "traces": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "persist": true
+    },
+    "issues": {
+      "enabled": true
+    }
+  },
 	// The API has no login of its own. The workers.dev address is on only
 	// because Cloudflare Access protects this Worker (see "Deploying" in
 	// README.md); set this to false if Access is ever removed. Preview
